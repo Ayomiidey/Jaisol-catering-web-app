@@ -57,24 +57,25 @@ export default function ProductPage() {
     )
   }
 
-  const cartItem = cart.items.find((item) => item.id === productId)
+  const cartItem = cart.items.find((item) => item.menuItemId === productId)
   const cartQuantity = cartItem?.quantity || 0
 
   const handleAddToCart = () => {
     dispatch(
       addToCart({
-        id: product.id,
+        menuItemId: product.id,
         name: product.name,
         price: product.price,
         quantity,
-        imageUrl: product.imageUrl,
       })
     )
     setQuantity(1)
   }
 
   const handleRemoveFromCart = () => {
-    dispatch(removeFromCart(productId))
+    if (cartItem) {
+      dispatch(removeFromCart(cartItem.id))
+    }
   }
 
   const handleCheckout = () => {
