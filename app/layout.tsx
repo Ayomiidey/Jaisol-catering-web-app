@@ -5,8 +5,8 @@ import { Providers } from '@/components/providers'
 
 export const metadata: Metadata = {
   title: 'Authentic West African Catering',
-  description: 'Order authentic West African cuisine and book catering services across the UK',
-  generator: 'v0.app',
+  description:
+    'Order authentic West African cuisine and book catering services across the UK',
   icons: {
     icon: [
       {
@@ -29,7 +29,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: 'dark',
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#1a1a1a' },
+    {
+      media: '(prefers-color-scheme: dark)',
+      color: '#1a1a1a',
+    },
   ],
 }
 
@@ -41,10 +44,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background">
       <body className="font-sans antialiased bg-background text-foreground">
-        <Providers>
-          {children}
-        </Providers>
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <Providers>{children}</Providers>
+
+        <Analytics />
       </body>
     </html>
   )
