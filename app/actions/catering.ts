@@ -3,6 +3,15 @@
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
+import type { Prisma, CateringBooking, CateringPackage } from '@prisma/client'
+
+type CateringBookingWithUser = Prisma.CateringBookingGetPayload<{
+  include: { user: true }
+}>
+
+function parseJsonArray(value: string | null): string[] {
+  return value ? JSON.parse(value) : []
+}
 
 export async function createCateringBooking(data: {
   eventType: string
@@ -52,9 +61,9 @@ export async function getUserBookings() {
       orderBy: { createdAt: 'desc' },
     })
 
-    return bookings.map((b) => ({
+    return bookings.map((b: CateringBooking) => ({
       ...b,
-      dietaryNeeds: b.dietaryNeeds ? JSON.parse(b.dietaryNeeds) : [],
+      dietaryNeeds: parseJsonArray(b.dietaryNeeds),
     }))
   } catch (error) {
     console.error('Error fetching user bookings:', error)
@@ -79,7 +88,7 @@ export async function getBookingById(id: string) {
 
     return {
       ...booking,
-      dietaryNeeds: booking.dietaryNeeds ? JSON.parse(booking.dietaryNeeds) : [],
+      dietaryNeeds: parseJsonArray(booking.dietaryNeeds),
     }
   } catch (error) {
     console.error('Error fetching booking:', error)
@@ -101,9 +110,9 @@ export async function getAllBookings(filters?: { status?: string; limit?: number
       take: filters?.limit || 50,
     })
 
-    return bookings.map((b) => ({
+    return bookings.map((b: CateringBookingWithUser) => ({
       ...b,
-      dietaryNeeds: b.dietaryNeeds ? JSON.parse(b.dietaryNeeds) : [],
+      dietaryNeeds: parseJsonArray(b.dietaryNeeds),
     }))
   } catch (error) {
     console.error('Error fetching all bookings:', error)
@@ -157,7 +166,7 @@ export async function getCateringPackages() {
       orderBy: { createdAt: 'desc' },
     })
 
-    return packages.map((p) => ({
+    return packages.map((p: CateringPackage) => ({
       ...p,
       includes: p.includes ? JSON.parse(p.includes) : [],
     }))
