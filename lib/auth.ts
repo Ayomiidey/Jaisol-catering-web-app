@@ -6,6 +6,9 @@ import bcrypt from "bcryptjs"
 
 const authOptions = NextAuth({
   adapter: PrismaAdapter(db),
+  session: {
+    strategy: "jwt",
+  },
   providers: [
     Credentials({
       credentials: {
@@ -17,8 +20,10 @@ const authOptions = NextAuth({
           return null
         }
 
+        const email = String(credentials.email).trim().toLowerCase()
+
         const user = await db.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { email },
         })
 
         if (!user || !user.password) {
@@ -50,17 +55,22 @@ const authOptions = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id
         const dbUser = await db.user.findUnique({
           where: { id: user.id },
         })
         token.isAdmin = dbUser?.isAdmin ?? false
+        token.name = dbUser?.name
+        token.email = dbUser?.email
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        ;(session.user as any).id = token.sub
+        ;(session.user as any).id = (token.id as string) ?? token.sub
         ;(session.user as any).isAdmin = token.isAdmin
+        session.user.name = token.name as string
+        session.user.email = token.email as string
       }
       return session
     },

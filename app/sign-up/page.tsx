@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -42,11 +43,23 @@ export default function SignUpPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Sign up failed')
+        setError(data.message || data.error || 'Sign up failed')
         return
       }
 
-      router.push('/sign-in')
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        router.push('/sign-in')
+        return
+      }
+
+      router.push('/')
+      router.refresh()
     } catch (err) {
       setError('An error occurred. Please try again.')
       console.error(err)

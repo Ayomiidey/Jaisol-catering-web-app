@@ -18,8 +18,12 @@ export function BottomNav() {
   const pathname = usePathname()
   const cartCount = useSelector((state: RootState) => state.cart.items.length)
 
-  // Hide nav on auth pages
-  if (pathname.includes('/sign-in') || pathname.includes('/sign-up')) {
+  // Hide nav on auth pages and admin pages
+  if (
+    pathname.includes('/sign-in') ||
+    pathname.includes('/sign-up') ||
+    pathname.startsWith('/admin')
+  ) {
     return null
   }
 

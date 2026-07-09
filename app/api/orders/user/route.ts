@@ -1,10 +1,15 @@
 import { db } from '@/lib/db'
+import { auth } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
   try {
-    // In a real app, get userId from session
-    const userId = 'guest-user'
+    const session = await auth()
+    const userId = (session?.user as any)?.id
+
+    if (!userId) {
+      return NextResponse.json([], { status: 200 })
+    }
 
     const orders = await db.order.findMany({
       where: { userId },

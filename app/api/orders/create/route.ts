@@ -1,8 +1,19 @@
 import { db } from '@/lib/db'
+import { auth } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth()
+    const userId = (session?.user as any)?.id
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Please sign in before placing an order' },
+        { status: 401 }
+      )
+    }
+
     const { items, totalPrice, deliveryAddress, phone, notes } = await req.json()
 
     if (!items || items.length === 0) {
@@ -19,10 +30,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Create order
     const order = await db.order.create({
       data: {
-        userId: 'guest-user', // In production, get from session
+        userId,
         status: 'pending',
         totalPrice,
         deliveryAddress,
@@ -31,12 +41,11 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Create order items
     for (const item of items) {
       await db.orderItem.create({
         data: {
           orderId: order.id,
-          menuItemId: item.id,
+          menuItemId: item.menuItemId,
           quantity: item.quantity,
           priceAtPurchase: item.price,
           notes: item.notes || '',

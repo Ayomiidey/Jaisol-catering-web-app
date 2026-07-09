@@ -6,11 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { createCateringBooking } from '@/app/actions/catering'
 
 const EVENT_TYPES = ['Wedding', 'Birthday', 'Corporate', 'Naming', 'Other']
 const DIETARY_OPTIONS = ['Halal', 'Vegan', 'Gluten-free']
 
 export function Book() {
+  const router = useRouter()
+  const { data: session, status } = useSession()
   const [formData, setFormData] = useState({
     eventType: 'Wedding',
     guestCount: 50,
@@ -21,6 +26,7 @@ export function Book() {
   })
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
+  const [loading, setLoading] = useState(false)
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {}
@@ -45,10 +51,25 @@ export function Book() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!validateForm()) {
+      return
+    }
+
+    if (status !== 'authenticated' || !session?.user) {
+      router.push(`/sign-in?callbackUrl=${encodeURIComponent('/book')}`)
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      await createCateringBooking(formData)
+    } catch (error) {
+      setErrors({ submit: 'Unable to save your booking request. Please try again.' })
+      setLoading(false)
       return
     }
 
@@ -73,6 +94,7 @@ Please confirm availability and send full quote.
     window.open(whatsappUrl, '_blank')
 
     setSubmitted(true)
+    setLoading(false)
     setTimeout(() => {
       setSubmitted(false)
       setFormData({
@@ -245,10 +267,12 @@ Please confirm availability and send full quote.
         <div className="fixed bottom-20 left-0 right-0 px-4 py-3 bg-background border-t border-border">
           <Button
             type="submit"
+            disabled={loading}
             className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-6"
           >
-            Book Catering
+            {loading ? 'Sending request...' : 'Book Catering'}
           </Button>
+          {errors.submit && <p className="mt-2 text-center text-sm text-red-400">{errors.submit}</p>}
         </div>
       </form>
 

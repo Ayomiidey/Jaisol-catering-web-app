@@ -6,14 +6,15 @@ import Image from 'next/image'
 import { getMenuItems } from '@/app/actions/menu'
 import { Button } from '@/components/ui/button'
 import { ShoppingCart, UtensilsCrossed, Cake, Search, Bell } from 'lucide-react'
-import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useSession } from 'next-auth/react'
 import { RootState } from '@/lib/store'
 import { setSearchTerm, setCategory, clearFilters } from '@/lib/slices/filter-slice'
 import { addToCart } from '@/lib/slices/cart-slice'
 
 export function Home() {
-  const [greeting] = useState('Hi, Amara 👋')
+  const { data: session } = useSession()
+  const greeting = `Hi, ${session?.user?.name?.split(' ')[0] || 'there'}`
   const dispatch = useDispatch()
   const cartItems = useSelector((state: RootState) => state.cart.items)
 
@@ -102,8 +103,9 @@ export function Home() {
         </div>
         <div className="flex gap-3 overflow-x-auto pb-2">
           {featuredItems.map((item) => (
-            <div
+            <Link
               key={item.id}
+              href={`/product/${item.id}`}
               className="flex-shrink-0 w-32 rounded-lg overflow-hidden bg-secondary border border-border hover:border-orange-500 transition"
             >
               <div className="aspect-square bg-muted flex items-center justify-center relative">
@@ -120,7 +122,7 @@ export function Home() {
                 <p className="text-xs font-medium truncate">{item.name}</p>
                 <p className="text-xs text-muted-foreground">{item.category}</p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -135,8 +137,9 @@ export function Home() {
         </div>
         <div className="space-y-3">
           {popularItems.map((item) => (
-            <div
+            <Link
               key={item.id}
+              href={`/product/${item.id}`}
               className="flex items-center justify-between p-3 rounded-lg bg-secondary border border-border hover:border-orange-500 transition"
             >
               <div className="flex items-center gap-3 flex-1">
@@ -156,12 +159,15 @@ export function Home() {
                 </div>
               </div>
               <button
-                onClick={() => handleAddToCart(item)}
+                onClick={(event) => {
+                  event.preventDefault()
+                  handleAddToCart(item)
+                }}
                 className="flex-shrink-0 p-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition"
               >
                 <span className="text-sm font-bold text-white">+</span>
               </button>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -190,8 +196,8 @@ export function Home() {
       <section className="px-4 py-6 pb-24">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">What people say</h3>
-          <Link href="#" className="text-orange-500 text-sm font-medium hover:underline">
-            All reviews
+          <Link href="/explore" className="text-orange-500 text-sm font-medium hover:underline">
+            Order now
           </Link>
         </div>
         <div className="space-y-3">

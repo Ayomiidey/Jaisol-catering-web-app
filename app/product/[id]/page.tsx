@@ -1,55 +1,95 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, Plus, Minus, ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
+import { useParams, useRouter } from 'next/navigation'
+import { getMenuItemById, getMenuItems } from '@/app/actions/menu'
+import { Button } from '@/components/ui/button'
+import {
+  ArrowLeft,
+  Plus,
+  Minus,
+  ShoppingCart,
+  Star,
+  ChefHat,
+  MessageCircle,
+} from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
-import { addToCart, removeFromCart } from '@/lib/slices/cart-slice'
-import { useQuery } from '@tanstack/react-query'
-
-interface MenuItem {
-  id: string
-  name: string
-  description: string
-  price: number
-  category: string
-  imageUrl: string
-  isAvailable: boolean
-}
+import { addToCart, removeFromCart, updateCartItem } from '@/lib/slices/cart-slice'
 
 export default function ProductPage() {
   const params = useParams()
   const router = useRouter()
-  const productId = params.id as string
   const dispatch = useDispatch()
-  const cart = useSelector((state: RootState) => state.cart)
-  const [quantity, setQuantity] = useState(1)
+  const id = params.id as string
+  const cartItems = useSelector((state: RootState) => state.cart.items)
 
-  const { data: product, isLoading, error } = useQuery({
-    queryKey: ['product', productId],
-    queryFn: async () => {
-      const response = await fetch(`/api/menu/${productId}`)
-      if (!response.ok) throw new Error('Failed to fetch product')
-      return response.json()
-    },
+  const { data: item, isLoading, isError } = useQuery({
+    queryKey: ['menu-item', id],
+    queryFn: () => getMenuItemById(id),
+    enabled: !!id,
   })
+
+  const { data: allItems = [] } = useQuery({
+    queryKey: ['menu-items'],
+    queryFn: () => getMenuItems(),
+  })
+
+  const relatedItems = allItems
+    .filter((i) => i.id !== id && i.category === item?.category)
+    .slice(0, 4)
+
+  const cartItem = cartItems.find((c) => c.menuItemId === id)
+  const quantity = cartItem?.quantity ?? 0
+
+  const handleAdd = () => {
+    if (!item) return
+    dispatch(
+      addToCart({
+        menuItemId: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: 1,
+      })
+    )
+  }
+
+  const handleDecrease = () => {
+    if (!cartItem) return
+    if (cartItem.quantity <= 1) {
+      dispatch(removeFromCart(cartItem.id))
+    } else {
+      dispatch(updateCartItem({ id: cartItem.id, quantity: cartItem.quantity - 1 }))
+    }
+  }
+
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '447000000000'
+
+  const handleWhatsAppEnquiry = () => {
+    if (!item) return
+    const message = encodeURIComponent(
+      `Hi! I'd like to enquire about "${item.name}" (£${item.price.toFixed(2)}). Is it available?`
+    )
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank')
+  }
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <div className="flex flex-col items-center gap-3">
+          <ChefHat className="w-8 h-8 text-orange-500 animate-pulse" />
+          <p className="text-muted-foreground text-sm">Loading...</p>
+        </div>
       </div>
     )
   }
 
-  if (error || !product) {
+  if (isError || !item) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <p className="text-muted-foreground mb-4">Product not found</p>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
+        <p className="text-lg font-semibold">Item not found</p>
         <Link href="/explore">
           <Button className="bg-orange-500 hover:bg-orange-600">Back to Menu</Button>
         </Link>
@@ -57,136 +97,170 @@ export default function ProductPage() {
     )
   }
 
-  const cartItem = cart.items.find((item) => item.menuItemId === productId)
-  const cartQuantity = cartItem?.quantity || 0
-
-  const handleAddToCart = () => {
-    dispatch(
-      addToCart({
-        menuItemId: product.id,
-        name: product.name,
-        price: product.price,
-        quantity,
-      })
-    )
-    setQuantity(1)
-  }
-
-  const handleRemoveFromCart = () => {
-    if (cartItem) {
-      dispatch(removeFromCart(cartItem.id))
-    }
-  }
-
-  const handleCheckout = () => {
-    router.push('/order')
-  }
-
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
+    <div className="min-h-screen bg-background text-foreground pb-32">
       {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur px-4 py-3">
-        <div className="flex items-center justify-between">
-          <button onClick={() => router.back()} className="p-2 hover:bg-secondary rounded-lg transition -ml-2">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-xl font-bold flex-1 text-center">{product.name}</h1>
-          <div className="w-10" />
-        </div>
+      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => router.back()}
+          className="p-2 hover:bg-secondary rounded-lg transition -ml-2"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <h1 className="text-lg font-semibold truncate max-w-[200px]">{item.name}</h1>
+        <Link href="/order" className="p-2 hover:bg-secondary rounded-lg transition relative">
+          <ShoppingCart className="w-5 h-5" />
+          {cartItems.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              {cartItems.reduce((s, i) => s + i.quantity, 0)}
+            </span>
+          )}
+        </Link>
       </header>
 
       {/* Product Image */}
-      <section className="relative w-full h-80 bg-secondary">
-        {product.imageUrl && (
+      <div className="relative w-full aspect-square bg-secondary max-h-80 overflow-hidden">
+        {item.imageUrl ? (
           <Image
-            src={product.imageUrl}
-            alt={product.name}
+            src={item.imageUrl}
+            alt={item.name}
             fill
             className="object-cover"
+            priority
           />
-        )}
-      </section>
-
-      {/* Product Details */}
-      <section className="px-4 py-6 space-y-4">
-        <div>
-          <h2 className="text-3xl font-bold text-orange-500">{product.name}</h2>
-          <p className="text-sm text-muted-foreground mt-1">{product.category}</p>
-        </div>
-
-        <div>
-          <p className="text-4xl font-bold">£{product.price.toFixed(2)}</p>
-        </div>
-
-        {product.description && (
-          <div>
-            <h3 className="font-semibold mb-2">Description</h3>
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
-          </div>
-        )}
-
-        {product.isAvailable ? (
-          <div className="inline-block px-3 py-1 bg-green-500/20 border border-green-500/50 rounded-full text-green-400 text-sm">
-            In Stock
-          </div>
         ) : (
-          <div className="inline-block px-3 py-1 bg-red-500/20 border border-red-500/50 rounded-full text-red-400 text-sm">
-            Out of Stock
+          <div className="w-full h-full flex items-center justify-center">
+            <ChefHat className="w-16 h-16 text-muted-foreground/40" />
           </div>
         )}
-      </section>
-
-      {/* Quantity & Cart Actions */}
-      <section className="fixed bottom-0 left-0 right-0 px-4 py-4 bg-background border-t border-border space-y-3">
-        {/* Quantity Selector */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Quantity</span>
-          <div className="flex items-center gap-3 bg-secondary rounded-lg p-2">
-            <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="p-1 hover:bg-orange-500/20 rounded transition"
-            >
-              <Minus className="w-4 h-4 text-orange-500" />
-            </button>
-            <span className="text-lg font-semibold w-8 text-center">{quantity}</span>
-            <button
-              onClick={() => setQuantity(quantity + 1)}
-              className="p-1 hover:bg-orange-500/20 rounded transition"
-            >
-              <Plus className="w-4 h-4 text-orange-500" />
-            </button>
+        {!item.isAvailable && (
+          <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+            <span className="bg-red-500 text-white font-bold px-4 py-2 rounded-full text-sm">
+              Currently Unavailable
+            </span>
           </div>
+        )}
+      </div>
+
+      {/* Product Info */}
+      <div className="px-4 py-6 space-y-4">
+        {/* Category Badge */}
+        <span className="inline-block px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-xs font-semibold uppercase tracking-wide">
+          {item.category}
+        </span>
+
+        {/* Name & Price */}
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-2xl font-bold leading-tight">{item.name}</h2>
+          <span className="text-2xl font-bold text-orange-500 flex-shrink-0">
+            £{item.price.toFixed(2)}
+          </span>
         </div>
 
-        {/* Cart Status */}
-        {cartQuantity > 0 && (
-          <div className="flex items-center justify-between p-3 bg-orange-500/10 rounded-lg border border-orange-500/50">
-            <span className="text-sm text-orange-400">{cartQuantity} in cart</span>
-            <button
-              onClick={handleRemoveFromCart}
-              className="text-sm text-red-400 hover:text-red-300"
-            >
-              Remove
-            </button>
+        {/* Rating (static for now) */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`w-4 h-4 ${i < 4 ? 'fill-orange-400 text-orange-400' : 'text-muted-foreground'}`}
+              />
+            ))}
           </div>
+          <span className="text-sm text-muted-foreground">4.0 · West African cuisine</span>
+        </div>
+
+        {/* Description */}
+        {item.description && (
+          <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
         )}
 
-        {/* Action Buttons */}
+        {/* Divider */}
+        <div className="border-t border-border" />
+
+        {/* Preparation Info */}
         <div className="grid grid-cols-2 gap-3">
-          <Button
-            onClick={handleAddToCart}
-            className="bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center gap-2"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            Add to Cart
-          </Button>
-          {cartQuantity > 0 && (
-            <Button onClick={handleCheckout} className="bg-green-600 hover:bg-green-700 text-white">
-              Checkout
-            </Button>
-          )}
+          <div className="p-3 rounded-lg bg-secondary">
+            <p className="text-xs text-muted-foreground">Prep time</p>
+            <p className="font-semibold text-sm mt-0.5">20–30 min</p>
+          </div>
+          <div className="p-3 rounded-lg bg-secondary">
+            <p className="text-xs text-muted-foreground">Serves</p>
+            <p className="font-semibold text-sm mt-0.5">1 person</p>
+          </div>
         </div>
-      </section>
+
+        {/* WhatsApp Enquiry */}
+        <button
+          onClick={handleWhatsAppEnquiry}
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg border border-green-500/50 bg-green-500/10 text-green-500 font-medium text-sm hover:bg-green-500/20 transition"
+        >
+          <MessageCircle className="w-4 h-4" />
+          Enquire on WhatsApp
+        </button>
+      </div>
+
+      {/* Related Items */}
+      {relatedItems.length > 0 && (
+        <section className="px-4 py-4 border-t border-border">
+          <h3 className="text-lg font-semibold mb-4">More from {item.category}</h3>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {relatedItems.map((rel) => (
+              <Link
+                key={rel.id}
+                href={`/product/${rel.id}`}
+                className="flex-shrink-0 w-36 rounded-lg overflow-hidden bg-secondary border border-border hover:border-orange-500 transition"
+              >
+                <div className="aspect-square bg-muted relative">
+                  {rel.imageUrl && (
+                    <Image src={rel.imageUrl} alt={rel.name} fill className="object-cover" />
+                  )}
+                </div>
+                <div className="p-2">
+                  <p className="text-xs font-medium truncate">{rel.name}</p>
+                  <p className="text-xs text-orange-500 font-semibold">£{rel.price.toFixed(2)}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Fixed Bottom Add to Cart */}
+      <div className="fixed bottom-16 left-0 right-0 px-4 py-3 bg-background border-t border-border z-30">
+        {item.isAvailable ? (
+          quantity > 0 ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 bg-orange-500 rounded-xl px-3 py-2">
+                <button onClick={handleDecrease} className="p-1 hover:bg-orange-600 rounded transition">
+                  <Minus className="w-4 h-4 text-white" />
+                </button>
+                <span className="text-white font-bold text-lg w-8 text-center">{quantity}</span>
+                <button onClick={handleAdd} className="p-1 hover:bg-orange-600 rounded transition">
+                  <Plus className="w-4 h-4 text-white" />
+                </button>
+              </div>
+              <Link href="/order" className="flex-1 ml-3">
+                <Button className="w-full bg-orange-500 hover:bg-orange-600 font-semibold py-6">
+                  View Cart · £{((cartItems.find(c => c.menuItemId === id)?.price ?? item.price) * quantity).toFixed(2)}
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <Button
+              onClick={handleAdd}
+              className="w-full bg-orange-500 hover:bg-orange-600 font-semibold py-6 text-base"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add to Cart · £{item.price.toFixed(2)}
+            </Button>
+          )
+        ) : (
+          <Button disabled className="w-full py-6 text-base" variant="outline">
+            Currently Unavailable
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

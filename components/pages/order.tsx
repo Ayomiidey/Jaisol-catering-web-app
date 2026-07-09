@@ -7,11 +7,15 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Trash2, Plus, Minus } from 'lucide-react'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 export function Order() {
   const dispatch = useDispatch()
+  const router = useRouter()
+  const { data: session, status } = useSession()
   const cart = useSelector((state: RootState) => state.cart)
   const [deliveryAddress, setDeliveryAddress] = useState(cart.deliveryAddress || '')
   const [phone, setPhone] = useState(cart.phone || '')
@@ -48,6 +52,11 @@ export function Order() {
       return
     }
 
+    if (status !== 'authenticated' || !session?.user) {
+      router.push(`/sign-in?callbackUrl=${encodeURIComponent('/order')}`)
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -67,6 +76,11 @@ export function Order() {
       const orderData = await orderResponse.json()
 
       if (!orderResponse.ok) {
+        if (orderResponse.status === 401) {
+          router.push(`/sign-in?callbackUrl=${encodeURIComponent('/order')}`)
+          return
+        }
+
         setErrors({ submit: orderData.error || 'Failed to create order' })
         setLoading(false)
         return
@@ -279,6 +293,7 @@ Status: Pending confirmation
             >
               {loading ? 'Processing...' : 'Confirm Order'}
             </Button>
+            {errors.submit && <p className="mt-2 text-center text-sm text-red-400">{errors.submit}</p>}
           </div>
         </>
       )}

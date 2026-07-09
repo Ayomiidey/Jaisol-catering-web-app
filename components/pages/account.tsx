@@ -3,7 +3,7 @@
 import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { LogOut, User, ShoppingBag, UtensilsCrossed } from 'lucide-react'
+import { LogOut, User, ShoppingBag, UtensilsCrossed, ShieldCheck } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 
@@ -24,7 +24,7 @@ interface Booking {
 }
 
 export function Account() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [orders, setOrders] = useState<Order[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
 
@@ -38,11 +38,27 @@ export function Account() {
     enabled: !!session,
   })
 
+  const { data: bookingsData } = useQuery({
+    queryKey: ['user-bookings'],
+    queryFn: async () => {
+      const response = await fetch('/api/catering/user')
+      if (!response.ok) return []
+      return response.json()
+    },
+    enabled: !!session,
+  })
+
   useEffect(() => {
     if (ordersData) {
       setOrders(ordersData)
     }
   }, [ordersData])
+
+  useEffect(() => {
+    if (bookingsData) {
+      setBookings(bookingsData)
+    }
+  }, [bookingsData])
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -61,15 +77,47 @@ export function Account() {
     }
   }
 
-  const mockBookings = [
-    {
-      id: '1',
-      event: 'Wedding - 80 guests',
-      date: '12 Oct',
-      location: 'Manchester',
-      status: 'Confirmed',
-    },
-  ]
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center pb-24">
+        <p className="text-muted-foreground">Loading account...</p>
+      </div>
+    )
+  }
+
+  if (!session?.user) {
+    return (
+      <div className="min-h-screen bg-background text-foreground pb-24">
+        <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur px-4 py-3">
+          <h1 className="text-xl font-bold">My Account</h1>
+        </header>
+
+        <section className="px-4 py-12 text-center space-y-4">
+          <div className="mx-auto w-14 h-14 rounded-full bg-secondary flex items-center justify-center">
+            <User className="w-7 h-7 text-orange-500" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold">Sign in to manage your orders</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              View order history, catering requests, and checkout faster.
+            </p>
+          </div>
+          <div className="grid gap-3">
+            <Link href="/sign-in">
+              <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/sign-up">
+              <Button className="w-full bg-secondary hover:bg-secondary/80 border border-border">
+                Create Account
+              </Button>
+            </Link>
+          </div>
+        </section>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
@@ -145,7 +193,7 @@ export function Account() {
           </h3>
         </div>
 
-        {mockBookings.length === 0 ? (
+        {bookings.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground text-sm mb-4">No catering bookings yet</p>
             <Link href="/book">
@@ -156,7 +204,7 @@ export function Account() {
           </div>
         ) : (
           <div className="space-y-3">
-            {mockBookings.map((booking) => (
+            {bookings.map((booking) => (
               <div
                 key={booking.id}
                 className="p-4 rounded-lg bg-secondary border border-border hover:border-orange-500 transition"
@@ -177,6 +225,21 @@ export function Account() {
           </div>
         )}
       </section>
+
+      {/* Admin Access (if admin) */}
+      {(session?.user as any)?.isAdmin && (
+        <section className="px-4 py-4 border-b border-border">
+          <Link href="/admin">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/30 hover:bg-orange-500/20 transition">
+              <ShieldCheck className="w-5 h-5 text-orange-500" />
+              <div>
+                <p className="font-semibold text-sm text-orange-500">Admin Dashboard</p>
+                <p className="text-xs text-muted-foreground">Manage orders, bookings & menu</p>
+              </div>
+            </div>
+          </Link>
+        </section>
+      )}
 
       {/* Quick Actions */}
       <section className="px-4 py-6 border-b border-border space-y-3">

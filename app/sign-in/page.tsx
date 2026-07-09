@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,20 +21,19 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'Sign in failed')
+      if (result?.error) {
+        setError('Invalid email or password')
         return
       }
 
-      router.push('/')
+      const params = new URLSearchParams(window.location.search)
+      router.push(params.get('callbackUrl') || '/')
       router.refresh()
     } catch (err) {
       setError('An error occurred. Please try again.')

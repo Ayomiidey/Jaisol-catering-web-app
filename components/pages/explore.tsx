@@ -28,11 +28,11 @@ export function Explore() {
 
   const filtered = menuItems.filter((item) => {
     const matchCategory = !selectedCategory || item.category === selectedCategory
+    const search = localSearch || searchTerm
     const matchSearch =
-      !searchTerm &&
-      !localSearch ||
-      item.name.toLowerCase().includes(localSearch.toLowerCase()) ||
-      item.description?.toLowerCase().includes(localSearch.toLowerCase())
+      !search ||
+      item.name.toLowerCase().includes(search.toLowerCase()) ||
+      item.description?.toLowerCase().includes(search.toLowerCase())
     return matchCategory && matchSearch
   })
 
