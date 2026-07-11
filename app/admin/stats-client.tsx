@@ -8,6 +8,7 @@ interface Stats {
   pendingOrders: number
   pendingBookings: number
   totalOrders: number
+  totalBookings: number
   monthlyRevenue: number
   totalRevenue: number
   recentOrders: Array<{
@@ -17,6 +18,16 @@ interface Stats {
     createdAt: string
     user: { name: string }
     items: Array<{ menuItem: { name: string }; quantity: number }>
+  }>
+  recentBookings: Array<{
+    id: string
+    status: string
+    eventType: string
+    guestCount: number
+    date: string
+    location: string
+    estimatedCost?: number | null
+    user: { name: string; email: string }
   }>
 }
 
@@ -72,38 +83,73 @@ export function AdminDashboardStats() {
         </div>
       </div>
 
-      {/* Recent Orders */}
-      {data.recentOrders.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">Recent Orders</h2>
-            <Link href="/admin/orders" className="text-orange-500 text-sm hover:underline">
-              View all
-            </Link>
-          </div>
-          <div className="rounded-lg border border-border overflow-hidden">
-            {data.recentOrders.map((order, idx) => (
-              <div
-                key={order.id}
-                className={`flex items-center justify-between p-4 ${idx < data.recentOrders.length - 1 ? 'border-b border-border' : ''} hover:bg-secondary/50 transition`}
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{order.user.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {order.items.map((i) => `${i.quantity}× ${i.menuItem.name}`).join(', ')}
-                  </p>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {data.recentOrders.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold">Recent Orders</h2>
+              <Link href="/admin/orders" className="text-orange-500 text-sm hover:underline">
+                View all
+              </Link>
+            </div>
+            <div className="rounded-lg border border-border overflow-hidden">
+              {data.recentOrders.map((order, idx) => (
+                <div
+                  key={order.id}
+                  className={`flex items-center justify-between p-4 ${idx < data.recentOrders.length - 1 ? 'border-b border-border' : ''} hover:bg-secondary/50 transition`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{order.user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {order.items.map((i) => `${i.quantity}× ${i.menuItem.name}`).join(', ')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 ml-3">
+                    <span className="font-semibold text-sm text-orange-500">£{order.totalPrice.toFixed(2)}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[order.status] ?? ''}`}>
+                      {order.status}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 ml-3">
-                  <span className="font-semibold text-sm text-orange-500">£{order.totalPrice.toFixed(2)}</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[order.status] ?? ''}`}>
-                    {order.status}
-                  </span>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {data.recentBookings.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold">Recent Catering</h2>
+              <Link href="/admin/bookings" className="text-orange-500 text-sm hover:underline">
+                View all
+              </Link>
+            </div>
+            <div className="rounded-lg border border-border overflow-hidden">
+              {data.recentBookings.map((booking, idx) => (
+                <div
+                  key={booking.id}
+                  className={`flex items-center justify-between p-4 ${idx < data.recentBookings.length - 1 ? 'border-b border-border' : ''} hover:bg-secondary/50 transition`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{booking.eventType}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {booking.user.name} · {booking.location}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 ml-3">
+                    <span className="font-semibold text-sm text-orange-500">
+                      {booking.estimatedCost ? `£${booking.estimatedCost.toFixed(2)}` : `${booking.guestCount} guests`}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[booking.status] ?? ''}`}>
+                      {booking.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

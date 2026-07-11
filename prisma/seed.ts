@@ -1,10 +1,28 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import bcrypt from 'bcryptjs'
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
+  const adminPassword = await bcrypt.hash('Admin123!', 10)
+
+  await prisma.user.upsert({
+    where: { email: 'admin@jaisol.local' },
+    update: {
+      name: 'Admin User',
+      password: adminPassword,
+      isAdmin: true,
+    },
+    create: {
+      name: 'Admin User',
+      email: 'admin@jaisol.local',
+      password: adminPassword,
+      isAdmin: true,
+    },
+  })
+
   // Clear existing data
   await prisma.orderItem.deleteMany()
   await prisma.order.deleteMany()

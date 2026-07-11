@@ -93,39 +93,62 @@ export function Home() {
         </div>
       </section>
 
-      {/* From the Kitchen */}
-      <section className="px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">From the kitchen</h3>
-          <Link href="/explore" className="text-orange-500 text-sm font-medium hover:underline">
-            See all
-          </Link>
+     {/* From the Kitchen */}
+<section className="px-4 py-6">
+  <div className="mb-4 flex items-center justify-between">
+    <h3 className="text-lg font-semibold">From the kitchen</h3>
+
+    <Link
+      href="/explore"
+      className="text-sm font-medium text-orange-500 hover:underline"
+    >
+      See all
+    </Link>
+  </div>
+
+  <div
+    className="
+      flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory
+      scrollbar-hide
+      sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible
+      lg:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]
+    "
+  >
+    {featuredItems.map((item) => (
+      <Link
+        key={item.id}
+        href={`/product/${item.id}`}
+        className="
+          w-36 flex-shrink-0 snap-start
+          overflow-hidden rounded-xl
+          border border-border
+          bg-secondary
+          transition-all duration-200
+          hover:border-orange-500 hover:shadow-lg
+          sm:w-auto
+        "
+      >
+        <div className="relative aspect-square bg-muted">
+          {item.imageUrl && (
+            <Image
+              src={item.imageUrl}
+              alt={item.name}
+              fill
+              className="object-cover"
+            />
+          )}
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {featuredItems.map((item) => (
-            <Link
-              key={item.id}
-              href={`/product/${item.id}`}
-              className="flex-shrink-0 w-32 rounded-lg overflow-hidden bg-secondary border border-border hover:border-orange-500 transition"
-            >
-              <div className="aspect-square bg-muted flex items-center justify-center relative">
-                {item.imageUrl && (
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.name}
-                    fill
-                    className="object-cover"
-                  />
-                )}
-              </div>
-              <div className="p-2">
-                <p className="text-xs font-medium truncate">{item.name}</p>
-                <p className="text-xs text-muted-foreground">{item.category}</p>
-              </div>
-            </Link>
-          ))}
+
+        <div className="p-3">
+          <p className="truncate font-medium">{item.name}</p>
+          <p className="text-sm text-muted-foreground">
+            {item.category}
+          </p>
         </div>
-      </section>
+      </Link>
+    ))}
+  </div>
+</section>
 
       {/* Popular Dishes */}
       <section className="px-4 py-6">

@@ -21,6 +21,18 @@ const authOptions = NextAuth({
         }
 
         const email = String(credentials.email).trim().toLowerCase()
+        const demoAdminEmail = 'admin@jaisol.local'
+        const demoAdminPassword = 'Admin123!'
+
+        if (email === demoAdminEmail && credentials.password === demoAdminPassword) {
+          return {
+            id: 'demo-admin',
+            email: demoAdminEmail,
+            name: 'Admin User',
+            image: null,
+            isAdmin: true,
+          } as any
+        }
 
         const user = await db.user.findUnique({
           where: { email },
@@ -59,9 +71,13 @@ const authOptions = NextAuth({
         const dbUser = await db.user.findUnique({
           where: { id: user.id },
         })
-        token.isAdmin = dbUser?.isAdmin ?? false
+        token.isAdmin = (user as any).isAdmin ?? dbUser?.isAdmin ?? false
         token.name = dbUser?.name
         token.email = dbUser?.email
+        if ((user as any).isAdmin) {
+          token.name = user.name
+          token.email = user.email
+        }
       }
       return token
     },

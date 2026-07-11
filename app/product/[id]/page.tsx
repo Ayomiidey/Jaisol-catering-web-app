@@ -98,7 +98,7 @@ export default function ProductPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-32">
+    <div className="min-h-screen bg-background text-foreground pb-32 lg:pb-24 lg:max-w-7xl lg:mx-auto lg:px-6">
       {/* Header */}
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur px-4 py-3 flex items-center justify-between">
         <button
@@ -119,13 +119,13 @@ export default function ProductPage() {
       </header>
 
       {/* Product Image */}
-      <div className="relative w-full aspect-square bg-secondary max-h-80 overflow-hidden">
+      <div className="relative w-full aspect-[4/3] lg:aspect-[5/4] bg-secondary overflow-hidden rounded-none lg:rounded-2xl lg:mt-6">
         {item.imageUrl ? (
           <Image
             src={item.imageUrl}
             alt={item.name}
             fill
-            className="object-cover"
+            className="object-contain p-4 lg:p-8"
             priority
           />
         ) : (
@@ -202,14 +202,14 @@ export default function ProductPage() {
 
       {/* Related Items */}
       {relatedItems.length > 0 && (
-        <section className="px-4 py-4 border-t border-border">
+        <section className="px-4 py-4 border-t border-border lg:px-0">
           <h3 className="text-lg font-semibold mb-4">More from {item.category}</h3>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 pb-2">
             {relatedItems.map((rel) => (
               <Link
                 key={rel.id}
                 href={`/product/${rel.id}`}
-                className="flex-shrink-0 w-36 rounded-lg overflow-hidden bg-secondary border border-border hover:border-orange-500 transition"
+                className="rounded-lg overflow-hidden bg-secondary border border-border hover:border-orange-500 transition"
               >
                 <div className="aspect-square bg-muted relative">
                   {rel.imageUrl && (

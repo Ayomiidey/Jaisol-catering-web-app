@@ -51,6 +51,10 @@ export default function SignInPage() {
           <p className="text-muted-foreground">Welcome back to Authentic West African Catering</p>
         </div>
 
+        <div className="rounded-lg border border-orange-500/30 bg-orange-500/10 p-3 text-sm text-orange-300">
+          Admin demo login: admin@jaisol.local / Admin123!
+        </div>
+
         <form onSubmit={handleSignIn} className="space-y-6">
           {error && (
             <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">

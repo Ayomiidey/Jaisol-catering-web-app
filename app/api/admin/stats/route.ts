@@ -16,13 +16,16 @@ export async function GET() {
       pendingOrdersCount,
       pendingBookingsCount,
       totalOrdersCount,
+      totalBookingsCount,
       monthlyOrders,
       allTimeRevenue,
       recentOrders,
+      recentBookings,
     ] = await Promise.all([
       db.order.count({ where: { status: 'pending' } }),
       db.cateringBooking.count({ where: { status: 'pending' } }),
       db.order.count(),
+      db.cateringBooking.count(),
       db.order.findMany({
         where: { createdAt: { gte: startOfMonth } },
         select: { totalPrice: true },
@@ -31,7 +34,33 @@ export async function GET() {
       db.order.findMany({
         take: 5,
         orderBy: { createdAt: 'desc' },
-        include: { user: { select: { name: true, email: true } }, items: { include: { menuItem: true } } },
+        select: {
+          id: true,
+          status: true,
+          totalPrice: true,
+          createdAt: true,
+          user: { select: { name: true, email: true } },
+          items: {
+            select: {
+              quantity: true,
+              menuItem: { select: { name: true } },
+            },
+          },
+        },
+      }),
+      db.cateringBooking.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          status: true,
+          eventType: true,
+          guestCount: true,
+          date: true,
+          location: true,
+          estimatedCost: true,
+          user: { select: { name: true, email: true } },
+        },
       }),
     ])
 
@@ -41,9 +70,11 @@ export async function GET() {
       pendingOrders: pendingOrdersCount,
       pendingBookings: pendingBookingsCount,
       totalOrders: totalOrdersCount,
+      totalBookings: totalBookingsCount,
       monthlyRevenue,
       totalRevenue: allTimeRevenue._sum.totalPrice ?? 0,
       recentOrders,
+      recentBookings,
     })
   } catch (error) {
     console.error('Stats error:', error)

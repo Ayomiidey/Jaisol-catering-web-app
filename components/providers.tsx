@@ -7,6 +7,7 @@ import { SessionProvider } from 'next-auth/react'
 import { store } from '@/lib/store'
 import { queryClient } from '@/lib/query-client'
 import { BottomNav } from './bottom-nav'
+import { DesktopHeader } from './desktop-header'
 
 interface ProvidersProps {
   children: ReactNode
@@ -17,6 +18,7 @@ export function Providers({ children }: ProvidersProps) {
     <SessionProvider>
       <ReduxProvider store={store}>
         <QueryClientProvider client={queryClient}>
+          <DesktopHeader />
           {children}
           <BottomNav />
         </QueryClientProvider>
