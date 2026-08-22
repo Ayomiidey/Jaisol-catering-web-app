@@ -3,7 +3,7 @@
 import { AdminGuard } from '@/components/admin-guard'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Plus, Pencil, Trash2, RefreshCw, X, ChefHat } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, RefreshCw, X, ChefHat, Link as LinkIcon, Upload } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -47,6 +47,10 @@ function MenuContent() {
   const [form, setForm] = useState<FormData>(emptyForm)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [formError, setFormError] = useState('')
+  const [imageSource, setImageSource] = useState<'url' | 'upload'>('url')
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState('')
+  const [isUploading, setIsUploading] = useState(false)
 
   const { data: items = [], isLoading, refetch } = useQuery<MenuItem[]>({
     queryKey: ['admin-menu'],
@@ -131,6 +135,9 @@ function MenuContent() {
   const openAdd = () => {
     setForm(emptyForm)
     setFormError('')
+    setImageSource('url')
+    setImageFile(null)
+    setImagePreview('')
     setModal('add')
   }
 
@@ -145,10 +152,24 @@ function MenuContent() {
       isAvailable: item.isAvailable,
     })
     setFormError('')
+    setImageSource('url')
+    setImageFile(null)
+    setImagePreview(item.imageUrl ?? '')
     setModal('edit')
   }
 
-  const handleSubmit = () => {
+  const uploadImage = async () => {
+    if (!imageFile) throw new Error('Choose an image to upload')
+
+    const uploadData = new FormData()
+    uploadData.append('file', imageFile)
+    const response = await fetch('/api/admin/upload', { method: 'POST', body: uploadData })
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error || 'Image upload failed')
+    return result.url as string
+  }
+
+  const handleSubmit = async () => {
     if (!form.name.trim() || !form.price || !form.category) {
       setFormError('Name, price and category are required')
       return
@@ -159,18 +180,28 @@ function MenuContent() {
       return
     }
 
-    if (modal === 'add') {
-      createItem.mutate({ ...form, price: priceNum })
-    } else if (modal === 'edit' && editItem) {
-      updateItem.mutate({
-        id: editItem.id,
-        name: form.name,
-        description: form.description,
-        price: priceNum,
-        category: form.category,
-        imageUrl: form.imageUrl,
-        isAvailable: form.isAvailable,
-      })
+    try {
+      setFormError('')
+      setIsUploading(true)
+      const imageUrl = imageSource === 'upload' ? await uploadImage() : form.imageUrl.trim()
+
+      if (modal === 'add') {
+        createItem.mutate({ ...form, imageUrl, price: priceNum })
+      } else if (modal === 'edit' && editItem) {
+        updateItem.mutate({
+          id: editItem.id,
+          name: form.name,
+          description: form.description,
+          price: priceNum,
+          category: form.category,
+          imageUrl,
+          isAvailable: form.isAvailable,
+        })
+      }
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Unable to upload image')
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -344,15 +375,55 @@ function MenuContent() {
                   </select>
                 </div>
               </div>
-              <div>
-                <Label htmlFor="imageUrl">Image URL</Label>
-                <Input
-                  id="imageUrl"
-                  value={form.imageUrl}
-                  onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                  placeholder="/images/dish.png or https://..."
-                  className="mt-1"
-                />
+              <div className="space-y-3">
+                <Label>Menu image</Label>
+                <div className="grid grid-cols-2 gap-2 rounded-lg bg-secondary p-1">
+                  <button
+                    type="button"
+                    onClick={() => setImageSource('url')}
+                    className={`flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition ${imageSource === 'url' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
+                  >
+                    <LinkIcon className="h-4 w-4" /> Use URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageSource('upload')}
+                    className={`flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition ${imageSource === 'upload' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
+                  >
+                    <Upload className="h-4 w-4" /> Upload file
+                  </button>
+                </div>
+                {imageSource === 'url' ? (
+                  <Input
+                    id="imageUrl"
+                    value={form.imageUrl}
+                    onChange={(e) => {
+                      const imageUrl = e.target.value
+                      setForm({ ...form, imageUrl })
+                      setImagePreview(imageUrl)
+                    }}
+                    placeholder="https://... or /images/dish.png"
+                  />
+                ) : (
+                  <div>
+                    <Input
+                      id="imageFile"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null
+                        setImageFile(file)
+                        setImagePreview(file ? URL.createObjectURL(file) : '')
+                      }}
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WebP, or GIF. Maximum 4 MB.</p>
+                  </div>
+                )}
+                {imagePreview && (
+                  <div className="relative h-36 overflow-hidden rounded-lg border border-border bg-secondary">
+                    <img src={imagePreview} alt="Selected menu item preview" className="h-full w-full object-cover" />
+                  </div>
+                )}
               </div>
               {modal === 'edit' && (
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
@@ -379,10 +450,10 @@ function MenuContent() {
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={createItem.isPending || updateItem.isPending}
+                disabled={createItem.isPending || updateItem.isPending || isUploading}
                 className="flex-1 bg-orange-500 hover:bg-orange-600"
               >
-                {createItem.isPending || updateItem.isPending ? 'Saving...' : modal === 'add' ? 'Add Item' : 'Save Changes'}
+                {isUploading ? 'Uploading image...' : createItem.isPending || updateItem.isPending ? 'Saving...' : modal === 'add' ? 'Add Item' : 'Save Changes'}
               </Button>
             </div>
           </div>
