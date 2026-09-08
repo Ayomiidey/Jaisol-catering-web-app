@@ -28,7 +28,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, description, price, category, imageUrl } = body
+    const { name, description, price, category, imageUrl, images } = body
+    const imageList = Array.isArray(images)
+      ? images.filter((image): image is string => typeof image === 'string' && image.trim().length > 0).map((image) => image.trim())
+      : []
+    const primaryImage = imageUrl ? String(imageUrl).trim() : imageList[0] ?? null
 
     if (!name || !price || !category) {
       return NextResponse.json({ error: 'Name, price and category are required' }, { status: 400 })
@@ -40,7 +44,8 @@ export async function POST(req: NextRequest) {
         description: description ? String(description).trim() : null,
         price: Number(price),
         category: String(category).trim(),
-        imageUrl: imageUrl ? String(imageUrl).trim() : null,
+        imageUrl: primaryImage,
+        images: Array.from(new Set(primaryImage ? [primaryImage, ...imageList] : imageList)),
         isAvailable: true,
       },
     })

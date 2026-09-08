@@ -21,10 +21,15 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
+      const requestedCallback = new URLSearchParams(window.location.search).get('callbackUrl')
+      const callbackUrl = requestedCallback?.startsWith('/') && !requestedCallback.startsWith('//')
+        ? requestedCallback
+        : '/'
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
+        callbackUrl,
       })
 
       if (result?.error) {
@@ -32,8 +37,7 @@ export default function SignInPage() {
         return
       }
 
-      const params = new URLSearchParams(window.location.search)
-      router.push(params.get('callbackUrl') || '/')
+      router.replace(callbackUrl)
       router.refresh()
     } catch (err) {
       setError('An error occurred. Please try again.')

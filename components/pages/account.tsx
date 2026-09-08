@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { LogOut, User, ShoppingBag, UtensilsCrossed, ShieldCheck } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
 
 interface Order {
   id: string
@@ -25,40 +24,29 @@ interface Booking {
 
 export function Account() {
   const { data: session, status } = useSession()
-  const [orders, setOrders] = useState<Order[]>([])
-  const [bookings, setBookings] = useState<Booking[]>([])
-
-  const { data: ordersData } = useQuery({
-    queryKey: ['user-orders'],
+  const { data: ordersData, isLoading: ordersLoading } = useQuery<Order[]>({
+    queryKey: ['user-orders', (session?.user as { id?: string } | undefined)?.id],
     queryFn: async () => {
       const response = await fetch('/api/orders/user')
-      if (!response.ok) return []
+      if (!response.ok) throw new Error('Failed to fetch orders')
       return response.json()
     },
-    enabled: !!session,
+    enabled: status === 'authenticated' && !!session?.user,
+    retry: 2,
   })
 
-  const { data: bookingsData } = useQuery({
+  const { data: bookingsData } = useQuery<Booking[]>({
     queryKey: ['user-bookings'],
     queryFn: async () => {
       const response = await fetch('/api/catering/user')
       if (!response.ok) return []
       return response.json()
     },
-    enabled: !!session,
+    enabled: status === 'authenticated' && !!session?.user,
   })
 
-  useEffect(() => {
-    if (ordersData) {
-      setOrders(ordersData)
-    }
-  }, [ordersData])
-
-  useEffect(() => {
-    if (bookingsData) {
-      setBookings(bookingsData)
-    }
-  }, [bookingsData])
+  const orders = ordersData ?? []
+  const bookings = bookingsData ?? []
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -150,7 +138,9 @@ export function Account() {
           </h3>
         </div>
 
-        {orders.length === 0 ? (
+        {ordersLoading ? (
+          <div className="py-8 text-center text-sm text-muted-foreground">Loading recent orders...</div>
+        ) : orders.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground text-sm mb-4">No orders yet</p>
             <Link href="/explore">
@@ -258,7 +248,7 @@ export function Account() {
       {/* Sign Out */}
       <section className="px-4 py-6">
         <button
-          onClick={() => signOut({ redirect: true, redirectTo: '/sign-in' })}
+          onClick={() => signOut({ redirect: true, redirectTo: '/' })}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive font-medium transition"
         >
           <LogOut className="w-4 h-4" />

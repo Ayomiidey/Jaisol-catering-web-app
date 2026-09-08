@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Compass, Home, ShoppingBag, UtensilsCrossed, User } from 'lucide-react'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/lib/store'
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -16,6 +18,9 @@ const navItems = [
 
 export function DesktopHeader() {
   const pathname = usePathname()
+  const cartCount = useSelector((state: RootState) =>
+    state.cart.items.reduce((total, item) => total + item.quantity, 0)
+  )
 
   if (
     pathname.startsWith('/admin') ||
@@ -62,6 +67,11 @@ export function DesktopHeader() {
               >
                 <Icon className="h-4 w-4" />
                 <span>{item.label}</span>
+                {item.href === '/order' && cartCount > 0 && (
+                  <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1 text-xs font-bold">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
             )
           })}

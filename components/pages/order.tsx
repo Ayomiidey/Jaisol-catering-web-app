@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Image from 'next/image'
 
 export function Order() {
   const dispatch = useDispatch()
@@ -160,7 +161,7 @@ Status: Pending confirmation
           <Link href="/explore" className="p-2 hover:bg-secondary rounded-lg transition -ml-2">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-xl font-bold">Your Order</h1>
+          <h1 className="text-xl font-bold">Your Order ({cart.items.reduce((total, item) => total + item.quantity, 0)})</h1>
         </div>
       </header>
 
@@ -179,9 +180,18 @@ Status: Pending confirmation
             {cart.items.map((item) => (
               <div key={item.id} className="p-4 rounded-lg bg-secondary border border-border">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground">£{item.price.toFixed(2)} each</p>
+                  <div className="flex flex-1 min-w-0 items-center gap-3">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-background">
+                      {item.imageUrl ? (
+                        <Image src={item.imageUrl} alt={item.name} fill sizes="64px" className="object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">No image</div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold truncate">{item.name}</h3>
+                      <p className="text-sm text-muted-foreground">£{item.price.toFixed(2)} each</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => dispatch(removeFromCart(item.id))}

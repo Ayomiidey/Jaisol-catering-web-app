@@ -18,6 +18,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
 import { addToCart, removeFromCart, updateCartItem } from '@/lib/slices/cart-slice'
+import { useState } from 'react'
 
 export default function ProductPage() {
   const params = useParams()
@@ -25,6 +26,7 @@ export default function ProductPage() {
   const dispatch = useDispatch()
   const id = params.id as string
   const cartItems = useSelector((state: RootState) => state.cart.items)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
   const { data: item, isLoading, isError } = useQuery({
     queryKey: ['menu-item', id],
@@ -51,6 +53,7 @@ export default function ProductPage() {
         menuItemId: item.id,
         name: item.name,
         price: item.price,
+        imageUrl: item.imageUrl,
         quantity: 1,
       })
     )
@@ -97,6 +100,11 @@ export default function ProductPage() {
     )
   }
 
+  const productImages = Array.from(new Set([item.imageUrl, ...(item.images ?? [])].filter(Boolean))) as string[]
+  const activeImage = selectedImage && productImages.includes(selectedImage)
+    ? selectedImage
+    : productImages[0]
+
   return (
     <div className="min-h-screen bg-background text-foreground pb-32 lg:pb-24 lg:max-w-7xl lg:mx-auto lg:px-6">
       {/* Header */}
@@ -120,9 +128,9 @@ export default function ProductPage() {
 
       {/* Product Image */}
       <div className="relative w-full aspect-[4/3] lg:aspect-[5/4] bg-secondary overflow-hidden rounded-none lg:rounded-2xl lg:mt-6">
-        {item.imageUrl ? (
+        {activeImage ? (
           <Image
-            src={item.imageUrl}
+            src={activeImage}
             alt={item.name}
             fill
             className="object-contain p-4 lg:p-8"
@@ -141,6 +149,22 @@ export default function ProductPage() {
           </div>
         )}
       </div>
+
+      {productImages.length > 1 && (
+        <div className="flex gap-3 overflow-x-auto px-4 py-3 lg:px-0">
+          {productImages.map((image, index) => (
+            <button
+              key={image}
+              type="button"
+              onClick={() => setSelectedImage(image)}
+              className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition ${activeImage === image ? 'border-orange-500' : 'border-transparent hover:border-orange-500/60'}`}
+              aria-label={`View image ${index + 1}`}
+            >
+              <Image src={image} alt={`${item.name} ${index + 1}`} fill sizes="64px" className="object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Product Info */}
       <div className="px-4 py-6 space-y-4">

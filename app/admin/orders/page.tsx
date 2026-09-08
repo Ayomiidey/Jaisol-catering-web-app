@@ -63,7 +63,23 @@ function OrdersContent() {
       if (!res.ok) throw new Error('Failed to update')
       return res.json()
     },
-    onSuccess: () => {
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-orders'] })
+      const previousQueries = queryClient.getQueriesData<Order[]>({ queryKey: ['admin-orders'] })
+
+      queryClient.setQueriesData<Order[]>({ queryKey: ['admin-orders'] }, (orders) =>
+        orders?.map((order) => (order.id === id ? { ...order, status } : order))
+      )
+
+      return { previousQueries }
+    },
+    onError: (_error, _variables, context) => {
+      context?.previousQueries.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data)
+      })
+    },
+    onSettled: () => {
+      // Reconcile silently in case the server rejected or normalized the update.
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] })
     },
   })

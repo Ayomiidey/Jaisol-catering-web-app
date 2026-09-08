@@ -47,6 +47,7 @@ export function Explore() {
         menuItemId: item.id,
         name: item.name,
         price: item.price,
+        imageUrl: item.imageUrl,
         quantity: 1,
       })
     )

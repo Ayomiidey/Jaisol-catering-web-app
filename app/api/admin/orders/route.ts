@@ -17,7 +17,14 @@ export async function GET(req: NextRequest) {
       where: status ? { status } : {},
       include: {
         user: { select: { name: true, email: true } },
-        items: { include: { menuItem: true } },
+        items: {
+          select: {
+            id: true,
+            quantity: true,
+            priceAtPurchase: true,
+            menuItem: { select: { name: true } },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
       take: limit,

@@ -19,6 +19,7 @@ interface MenuItem {
   price: number
   category: string
   imageUrl?: string | null
+  images?: string[]
   isAvailable: boolean
 }
 
@@ -28,6 +29,7 @@ type FormData = {
   price: string
   category: string
   imageUrl: string
+  images: string[]
   isAvailable: boolean
 }
 
@@ -37,6 +39,7 @@ const emptyForm: FormData = {
   price: '',
   category: 'Mains',
   imageUrl: '',
+  images: [],
   isAvailable: true,
 }
 
@@ -48,8 +51,9 @@ function MenuContent() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [formError, setFormError] = useState('')
   const [imageSource, setImageSource] = useState<'url' | 'upload'>('url')
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState('')
+  const [imageFiles, setImageFiles] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [mainImageIndex, setMainImageIndex] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
 
   const { data: items = [], isLoading, refetch } = useQuery<MenuItem[]>({
@@ -84,13 +88,16 @@ function MenuContent() {
   })
 
   const updateItem = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; name?: string; description?: string; price?: number; category?: string; imageUrl?: string; isAvailable?: boolean }) => {
+    mutationFn: async ({ id, ...data }: { id: string; name?: string; description?: string; price?: number; category?: string; imageUrl?: string; images?: string[]; isAvailable?: boolean }) => {
       const res = await fetch(`/api/admin/menu/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
-      if (!res.ok) throw new Error('Failed to update')
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to update')
+      }
       return res.json()
     },
     onSuccess: () => {
@@ -106,7 +113,10 @@ function MenuContent() {
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/admin/menu/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to delete')
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to delete')
+      }
       return res.json()
     },
     onSuccess: () => {
@@ -114,6 +124,7 @@ function MenuContent() {
       queryClient.invalidateQueries({ queryKey: ['menu-items'] })
       setDeleteConfirm(null)
     },
+    onError: (error: Error) => setFormError(error.message),
   })
 
   const toggleAvailability = useMutation({
@@ -136,8 +147,9 @@ function MenuContent() {
     setForm(emptyForm)
     setFormError('')
     setImageSource('url')
-    setImageFile(null)
-    setImagePreview('')
+    setImageFiles([])
+    setImagePreviews([])
+    setMainImageIndex(0)
     setModal('add')
   }
 
@@ -149,20 +161,21 @@ function MenuContent() {
       price: String(item.price),
       category: item.category,
       imageUrl: item.imageUrl ?? '',
+      images: item.images ?? (item.imageUrl ? [item.imageUrl] : []),
       isAvailable: item.isAvailable,
     })
     setFormError('')
     setImageSource('url')
-    setImageFile(null)
-    setImagePreview(item.imageUrl ?? '')
+    setImageFiles([])
+    setImagePreviews(item.images ?? (item.imageUrl ? [item.imageUrl] : []))
+    setMainImageIndex(Math.max(0, (item.images ?? []).indexOf(item.imageUrl ?? '')))
     setModal('edit')
   }
 
-  const uploadImage = async () => {
-    if (!imageFile) throw new Error('Choose an image to upload')
+  const uploadImage = async (file: File) => {
 
     const uploadData = new FormData()
-    uploadData.append('file', imageFile)
+    uploadData.append('file', file)
     const response = await fetch('/api/admin/upload', { method: 'POST', body: uploadData })
     const result = await response.json()
     if (!response.ok) throw new Error(result.error || 'Image upload failed')
@@ -183,10 +196,19 @@ function MenuContent() {
     try {
       setFormError('')
       setIsUploading(true)
-      const imageUrl = imageSource === 'upload' ? await uploadImage() : form.imageUrl.trim()
+      const uploadedImages = await Promise.all(imageFiles.map(uploadImage))
+      const imageUrls = Array.from(new Set([
+        ...form.images,
+        ...uploadedImages,
+        ...(imageSource === 'url' && form.imageUrl.trim() ? [form.imageUrl.trim()] : []),
+      ]))
+      const isNewUrlImage = imageSource === 'url' && form.imageUrl.trim() && !form.images.includes(form.imageUrl.trim())
+      const imageUrl = isNewUrlImage
+        ? form.imageUrl.trim()
+        : imageUrls[mainImageIndex] ?? imageUrls[0] ?? ''
 
       if (modal === 'add') {
-        createItem.mutate({ ...form, imageUrl, price: priceNum })
+        createItem.mutate({ ...form, imageUrl, images: imageUrls, price: priceNum })
       } else if (modal === 'edit' && editItem) {
         updateItem.mutate({
           id: editItem.id,
@@ -195,6 +217,7 @@ function MenuContent() {
           price: priceNum,
           category: form.category,
           imageUrl,
+          images: imageUrls,
           isAvailable: form.isAvailable,
         })
       }
@@ -298,7 +321,7 @@ function MenuContent() {
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => setDeleteConfirm(item.id)}
+                    onClick={() => { setFormError(''); setDeleteConfirm(item.id) }}
                     className="p-2 hover:bg-red-500/20 rounded-lg transition text-red-400"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -400,28 +423,45 @@ function MenuContent() {
                     onChange={(e) => {
                       const imageUrl = e.target.value
                       setForm({ ...form, imageUrl })
-                      setImagePreview(imageUrl)
                     }}
-                    placeholder="https://... or /images/dish.png"
+                    placeholder="https://... or /images/dish.png (this becomes the main image)"
                   />
                 ) : (
                   <div>
                     <Input
                       id="imageFile"
                       type="file"
+                      multiple
                       accept="image/jpeg,image/png,image/webp,image/gif"
                       onChange={(e) => {
-                        const file = e.target.files?.[0] ?? null
-                        setImageFile(file)
-                        setImagePreview(file ? URL.createObjectURL(file) : '')
+                        const files = Array.from(e.target.files ?? [])
+                        setImageFiles(files)
+                        setImagePreviews([
+                          ...form.images,
+                          ...files.map((file) => URL.createObjectURL(file)),
+                        ])
+                        setMainImageIndex(0)
                       }}
                     />
-                    <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WebP, or GIF. Maximum 4 MB.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Select one or more JPG, PNG, WebP, or GIF files. Maximum 4 MB each.</p>
                   </div>
                 )}
-                {imagePreview && (
-                  <div className="relative h-36 overflow-hidden rounded-lg border border-border bg-secondary">
-                    <img src={imagePreview} alt="Selected menu item preview" className="h-full w-full object-cover" />
+                {imagePreviews.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {imagePreviews.map((image, index) => (
+                      <button
+                        key={`${image}-${index}`}
+                        type="button"
+                        onClick={() => setMainImageIndex(index)}
+                        className={`relative aspect-square overflow-hidden rounded-lg border-2 transition ${mainImageIndex === index ? 'border-orange-500' : 'border-border'}`}
+                        title="Set as main image"
+                      >
+                        <img src={image} alt={`Product image ${index + 1}`} className="h-full w-full object-cover" />
+                        {mainImageIndex === index && (
+                          <span className="absolute inset-x-1 bottom-1 rounded bg-orange-500 px-1 py-0.5 text-[10px] font-bold text-white">Main</span>
+                        )}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
@@ -468,6 +508,7 @@ function MenuContent() {
             <p className="text-muted-foreground text-sm">
               This will permanently delete the menu item. This cannot be undone.
             </p>
+            {formError && <p className="rounded-lg bg-red-500/10 p-3 text-sm text-red-400">{formError}</p>}
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setDeleteConfirm(null)}>
                 Cancel

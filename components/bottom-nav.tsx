@@ -16,7 +16,9 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname()
-  const cartCount = useSelector((state: RootState) => state.cart.items.length)
+  const cartCount = useSelector((state: RootState) =>
+    state.cart.items.reduce((total, item) => total + item.quantity, 0)
+  )
 
   // Hide nav on auth pages and admin pages
   if (

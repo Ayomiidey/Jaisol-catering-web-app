@@ -8,19 +8,18 @@ export async function GET(req: NextRequest) {
     const userId = (session?.user as any)?.id
 
     if (!userId) {
-      return NextResponse.json([], { status: 200 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const orders = await db.order.findMany({
       where: { userId },
       include: {
         items: {
-          include: {
-            menuItem: true,
-          },
+          select: { menuItem: { select: { name: true } } },
         },
       },
       orderBy: { createdAt: 'desc' },
+      take: 20,
     })
 
     const formattedOrders = orders.map((order) => {

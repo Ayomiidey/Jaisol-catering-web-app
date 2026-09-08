@@ -5,6 +5,7 @@ export interface CartItem {
   menuItemId: string
   name: string
   price: number
+  imageUrl?: string | null
   quantity: number
   notes?: string
 }
