@@ -125,6 +125,24 @@ model CateringPackage {
   @@map("catering_package")
 }
 
+model Carousel {
+  id          String   @id @default(cuid())
+  title       String   @db.VarChar(255)
+  description String?
+  imageUrl    String
+  link        String?
+  type        String   @default("homepage") @db.VarChar(50)
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([type, isActive, sortOrder])
+  @@map("carousel")
+}
+
 model CateringBooking {
   id            String   @id @default(cuid())
   userId        String

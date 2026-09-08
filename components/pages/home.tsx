@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react'
 import { RootState } from '@/lib/store'
 import { setSearchTerm, setCategory, clearFilters } from '@/lib/slices/filter-slice'
 import { addToCart } from '@/lib/slices/cart-slice'
+import HeroCarousel from '@/components/carousel/HeroCarousel'
 
 export function Home() {
   const { data: session } = useSession()
@@ -61,7 +62,8 @@ export function Home() {
 
       {/* Featured Banner */}
       <section className="px-4 py-4">
-        <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl p-6 text-white">
+        <HeroCarousel />
+        <div className="hidden bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl p-6 text-white">
           <span className="inline-block bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-2">
             Featured this week
           </span>

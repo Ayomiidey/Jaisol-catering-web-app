@@ -1,0 +1,28 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+export interface ApiCarouselSlide {
+  id: string;
+  title: string;
+  description: string | null;
+  imageUrl: string;
+  link: string | null;
+  sortOrder: number;
+}
+
+export function useCarouselSlides(type = "homepage", skip = false) {
+  const [slides, setSlides] = useState<ApiCarouselSlide[]>([]);
+  const [loading, setLoading] = useState(!skip);
+
+  useEffect(() => {
+    if (skip) return;
+    fetch(`/api/carousels?type=${encodeURIComponent(type)}`)
+      .then((res) => res.json())
+      .then((json) => setSlides(json.data ?? []))
+      .catch(() => setSlides([]))
+      .finally(() => setLoading(false));
+  }, [type, skip]);
+
+  return { slides, loading };
+}

@@ -1,6 +1,6 @@
 import { AdminGuard } from '@/components/admin-guard'
 import Link from 'next/link'
-import { ShoppingBag, UtensilsCrossed, Utensils, BarChart3 } from 'lucide-react'
+import { ShoppingBag, UtensilsCrossed, Utensils, BarChart3, Images } from 'lucide-react'
 import { AdminDashboardStats } from './stats-client'
 
 export default function AdminDashboard() {
@@ -20,7 +20,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Navigation Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             <Link href="/admin/orders">
               <div className="p-5 rounded-lg bg-secondary border border-border hover:border-orange-500 transition cursor-pointer h-full">
                 <ShoppingBag className="w-7 h-7 text-orange-500 mb-3" />
@@ -47,6 +47,13 @@ export default function AdminDashboard() {
                 <BarChart3 className="w-7 h-7 text-orange-500 mb-3" />
                 <h2 className="text-lg font-bold">Analytics</h2>
                 <p className="text-muted-foreground text-sm mt-1">Business insights</p>
+              </div>
+            </Link>
+            <Link href="/admin/carousel">
+              <div className="p-5 rounded-lg bg-secondary border border-border hover:border-orange-500 transition cursor-pointer h-full">
+                <Images className="w-7 h-7 text-orange-500 mb-3" />
+                <h2 className="text-lg font-bold">Carousel</h2>
+                <p className="text-muted-foreground text-sm mt-1">Homepage banners</p>
               </div>
             </Link>
           </div>
