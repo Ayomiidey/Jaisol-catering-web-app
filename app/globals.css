@@ -4,6 +4,292 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* =========================================================
+   Jaisol Catering — Design System
+   Brand:
+   Green = Primary
+   Red   = Accent
+   ========================================================= */
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+
+  /* Core colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand */
+  --color-brand-green: var(--brand-green);
+  --color-brand-red: var(--brand-red);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-green-light: var(--brand-green-light);
+  --color-brand-red-light: var(--brand-red-light);
+
+  /* Charts */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Radius */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+
+/* =========================================================
+   LIGHT MODE
+   ========================================================= */
+
+:root {
+  color-scheme: light;
+
+  /* Brand */
+  --brand-green: #9bd45b;
+  --brand-green-light: #eef8df;
+
+  --brand-red: #d92323;
+  --brand-red-light: #fff0f0;
+
+  --brand-dark: #1c1f24;
+
+  /* Main surfaces */
+  --background: #ffffff;
+  --foreground: #1c1f24;
+
+  --card: #ffffff;
+  --card-foreground: #1c1f24;
+
+  --popover: #ffffff;
+  --popover-foreground: #1c1f24;
+
+  /* Primary = Jaisol green */
+  --primary: #8bc94d;
+  --primary-foreground: #14200b;
+
+  /* Secondary = soft neutral */
+  --secondary: #f5f7f2;
+  --secondary-foreground: #252922;
+
+  /* Muted */
+  --muted: #f3f4f1;
+  --muted-foreground: #6b7168;
+
+  /* Accent = Jaisol red */
+  --accent: #d92323;
+  --accent-foreground: #ffffff;
+
+  /* Errors */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  /* Borders */
+  --border: #e5e8e1;
+  --input: #e1e5dc;
+  --ring: #8bc94d;
+
+  /* Charts */
+  --chart-1: #8bc94d;
+  --chart-2: #d92323;
+  --chart-3: #6da83b;
+  --chart-4: #ef6a6a;
+  --chart-5: #34402c;
+
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1c1f24;
+  --sidebar-primary: #8bc94d;
+  --sidebar-primary-foreground: #14200b;
+  --sidebar-accent: #f3f7ed;
+  --sidebar-accent-foreground: #1c1f24;
+  --sidebar-border: #e5e8e1;
+  --sidebar-ring: #8bc94d;
+
+  --radius: 0.75rem;
+}
+
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+
+.dark {
+  color-scheme: dark;
+
+  /* Brand */
+  --brand-green: #9bd45b;
+  --brand-green-light: #26351b;
+
+  --brand-red: #ef4545;
+  --brand-red-light: #3a1e1e;
+
+  --brand-dark: #101216;
+
+  /* Main surfaces */
+  --background: #101216;
+  --foreground: #f7f8f5;
+
+  --card: #181b20;
+  --card-foreground: #f7f8f5;
+
+  --popover: #181b20;
+  --popover-foreground: #f7f8f5;
+
+  /* Primary = brighter green in dark mode */
+  --primary: #9bd45b;
+  --primary-foreground: #101609;
+
+  /* Secondary */
+  --secondary: #20252b;
+  --secondary-foreground: #f7f8f5;
+
+  /* Muted */
+  --muted: #20252b;
+  --muted-foreground: #a7ada4;
+
+  /* Accent = red */
+  --accent: #ef4545;
+  --accent-foreground: #ffffff;
+
+  /* Errors */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  /* Borders */
+  --border: #2b3037;
+  --input: #30363d;
+  --ring: #9bd45b;
+
+  /* Charts */
+  --chart-1: #9bd45b;
+  --chart-2: #ef4545;
+  --chart-3: #6da83b;
+  --chart-4: #f87171;
+  --chart-5: #d6e8c2;
+
+  /* Sidebar */
+  --sidebar: #14171b;
+  --sidebar-foreground: #f7f8f5;
+  --sidebar-primary: #9bd45b;
+  --sidebar-primary-foreground: #101609;
+  --sidebar-accent: #20252b;
+  --sidebar-accent-foreground: #f7f8f5;
+  --sidebar-border: #2b3037;
+  --sidebar-ring: #9bd45b;
+
+  --radius: 0.75rem;
+}
+
+
+/* =========================================================
+   BASE
+   ========================================================= */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* @import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: Arial, Helvetica, sans-serif;
@@ -166,4 +452,4 @@
   html {
     @apply font-sans;
   }
-}
+} */

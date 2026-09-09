@@ -35,15 +35,15 @@ export function DesktopHeader() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
         <Link href="/" className="flex items-center gap-3 min-w-0">
           <Image
-            src="/placeholder-logo.png"
+            src="/images/Jaisol-Logo.jpeg"
             alt="Jaisol Catering logo"
-            width={42}
-            height={42}
+            width={82}
+            height={82}
             className="rounded-xl object-cover shadow-sm"
             priority
           />
           <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.22em] text-orange-500 font-semibold">
+            <p className="text-xs uppercase tracking-[0.22em] text-red-600 font-semibold">
               Authentic West African Catering
             </p>
             <h1 className="text-xl font-semibold leading-tight">Jaisol Catering</h1>
@@ -61,7 +61,7 @@ export function DesktopHeader() {
                 href={item.href}
                 className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
                   isActive
-                    ? 'bg-orange-500 text-white'
+                    ? 'bg-[#9ED061] text-white'
                     : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
               >
@@ -76,7 +76,7 @@ export function DesktopHeader() {
             )
           })}
           <Link href="/book" className="ml-2">
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-5">
+            <Button className="bg-[#9ED061] hover:bg-#9ED061 text-white rounded-full px-5">
               Reserve catering
             </Button>
           </Link>

@@ -26,15 +26,29 @@ export const metadata: Metadata = {
   },
 }
 
+
 export const viewport: Viewport = {
-  colorScheme: 'dark',
+  colorScheme: 'light dark',
   themeColor: [
     {
+      media: '(prefers-color-scheme: light)',
+      color: '#ffffff',
+    },
+    {
       media: '(prefers-color-scheme: dark)',
-      color: '#1a1a1a',
+      color: '#101216',
     },
   ],
 }
+// export const viewport: Viewport = {
+//   colorScheme: 'dark',
+//   themeColor: [
+//     {
+//       media: '(prefers-color-scheme: dark)',
+//       color: '#1a1a1a',
+//     },
+//   ],
+// }
 
 export default function RootLayout({
   children,

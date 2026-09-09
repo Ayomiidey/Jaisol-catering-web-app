@@ -13,6 +13,11 @@ import { KitchenSection } from '@/components/home/KitchenSection'
 import { PopularDishes } from '@/components/home/PopularDishes'
 import { CateringBanner } from '@/components/home/CateringBanner'
 import { ReviewsSection } from '@/components/home/ReviewsSection'
+import { ServicesSection } from '@/components/home/ServicesSection'
+import { StoryBlock } from '@/components/home/StoryBlock'
+import { WhyJaisolSection } from '@/components/home/WhyJaisolSection'
+import { FinalCTA } from '@/components/home/FinalCTA'
+import { Footer } from '@/components/shared/Footer'
 
 export default function Home() {
   const { data: session } = useSession()
@@ -47,11 +52,16 @@ export default function Home() {
       <section className="px-4 py-4">
         <HeroCarousel />
       </section>
-      <QuickActions />
+      {/* <QuickActions /> */}
+      <ServicesSection/>
       <KitchenSection items={featuredItems} />
-      <PopularDishes items={popularItems} onAdd={handleAddToCart} />
-      <CateringBanner />
+      <StoryBlock/>
+      {/* <PopularDishes items={popularItems} onAdd={handleAddToCart} /> */}
+      <WhyJaisolSection/>
+      {/* <CateringBanner /> */}
       <ReviewsSection />
+      <FinalCTA/>
+      <Footer/>
     </div>
   )
 }

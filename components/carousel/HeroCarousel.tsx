@@ -26,7 +26,7 @@ const fallbackSlides = [
   {
     image: "/images/wedding-cake.png",
     title: "From Concept to Delivery",
-    subtitle: "Browse, customize, and order — we handle printing and shipping.",
+    subtitle: "Browse, send your design, and order — we handle baking and shipping.",
     link: "/book",
   },
 ];
