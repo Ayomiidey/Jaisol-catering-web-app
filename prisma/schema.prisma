@@ -126,18 +126,18 @@ model CateringPackage {
 }
 
 model Carousel {
-  id          String   @id @default(cuid())
-  title       String   @db.VarChar(255)
+  id          String    @id @default(cuid())
+  title       String    @db.VarChar(255)
   description String?
   imageUrl    String
   link        String?
-  type        String   @default("homepage") @db.VarChar(50)
-  sortOrder   Int      @default(0)
-  isActive    Boolean  @default(true)
+  type        String    @default("homepage") @db.VarChar(50)
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
   startDate   DateTime?
   endDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([type, isActive, sortOrder])
   @@map("carousel")
@@ -150,10 +150,11 @@ model CateringBooking {
   guestCount    Int
   date          DateTime
   location      String   @db.VarChar(255)
+  phone         String?  @db.VarChar(20)
   dietaryNeeds  String?
+  notes         String?
   status        String   @default("pending")
   estimatedCost Float?
-  notes         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -161,5 +162,6 @@ model CateringBooking {
   @@index([userId])
   @@index([status])
   @@index([eventType])
+  @@index([date])
   @@map("catering_booking")
 }
