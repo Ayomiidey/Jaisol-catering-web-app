@@ -149,6 +149,7 @@ model CateringBooking {
   eventType     String   @db.VarChar(100)
   guestCount    Int
   date          DateTime
+  eventTime     String?
   location      String   @db.VarChar(255)
   phone         String?  @db.VarChar(20)
   dietaryNeeds  String?

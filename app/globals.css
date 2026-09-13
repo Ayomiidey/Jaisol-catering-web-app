@@ -107,8 +107,8 @@
   --popover-foreground: #1c1f24;
 
   /* Primary = Jaisol green */
-  --primary: #8bc94d;
-  --primary-foreground: #14200b;
+  --primary: #9ED061;
+  --primary-foreground: #17220f;
 
   /* Secondary = soft neutral */
   --secondary: #f5f7f2;
@@ -129,10 +129,10 @@
   /* Borders */
   --border: #e5e8e1;
   --input: #e1e5dc;
-  --ring: #8bc94d;
+  --ring: #9ED061;
 
   /* Charts */
-  --chart-1: #8bc94d;
+  --chart-1: #9ED061;
   --chart-2: #d92323;
   --chart-3: #6da83b;
   --chart-4: #ef6a6a;
@@ -141,12 +141,12 @@
   /* Sidebar */
   --sidebar: #ffffff;
   --sidebar-foreground: #1c1f24;
-  --sidebar-primary: #8bc94d;
+  --sidebar-primary: #9ED061;
   --sidebar-primary-foreground: #14200b;
   --sidebar-accent: #f3f7ed;
   --sidebar-accent-foreground: #1c1f24;
   --sidebar-border: #e5e8e1;
-  --sidebar-ring: #8bc94d;
+  --sidebar-ring: #9ED061;
 
   --radius: 0.75rem;
 }

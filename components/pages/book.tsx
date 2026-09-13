@@ -1,282 +1,479 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import { ArrowLeft, AlertCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+
 import { createCateringBooking } from '@/app/actions/catering'
 
-const EVENT_TYPES = ['Wedding', 'Birthday', 'Corporate', 'Naming', 'Other']
-const DIETARY_OPTIONS = ['Halal', 'Vegan', 'Gluten-free']
+import { BookingHeader } from '@/components/booking/BookingHeader'
+import { EventTypeSelector } from '@/components/booking/EventTypeSelector'
+import { GuestCountSelector } from '@/components/booking/GuestCountSelector'
+import { EventDetailsForm } from '@/components/booking/EventDetailsForm'
+import { DietarySelector } from '@/components/booking/DietarySelector'
+import { BookingNotes } from '@/components/booking/BookingNotes'
+import { BookingSummary } from '@/components/booking/BookingSummary'
+import { BookingSubmit } from '@/components/booking/BookingSubmit'
+import { BookingSuccess } from '@/components/booking/BookingSuccess'
+
+const WHATSAPP_NUMBER =
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ''
+
+interface FormErrors {
+  eventType?: string
+  guestCount?: string
+  date?: string
+  time?: string
+  location?: string
+  phone?: string
+}
 
 export function Book() {
   const router = useRouter()
   const { data: session, status } = useSession()
+
+  const [submitted, setSubmitted] = useState(false)
+  const [bookingId, setBookingId] = useState('')
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const [submitError, setSubmitError] = useState('')
+
   const [formData, setFormData] = useState({
     eventType: 'Wedding',
     guestCount: 50,
     date: '',
+    time: '',
     location: '',
+    phone: '',
     dietaryNeeds: [] as string[],
     notes: '',
   })
-  const [submitted, setSubmitted] = useState(false)
-  const [errors, setErrors] = useState<{ [key: string]: string }>({})
-  const [loading, setLoading] = useState(false)
 
-  const validateForm = () => {
-    const newErrors: { [key: string]: string } = {}
+  const [errors, setErrors] = useState<FormErrors>({})
 
-    if (!formData.date || formData.date.trim().length === 0) {
-      newErrors.date = 'Event date is required'
+  const userName = session?.user?.name || ''
+  const userEmail = session?.user?.email || ''
+
+  const combinedDateTime = useMemo(() => {
+    if (!formData.date || !formData.time) {
+      return ''
     }
 
-    if (!formData.location || formData.location.trim().length === 0) {
-      newErrors.location = 'Location is required'
-    } else if (formData.location.trim().length < 3) {
-      newErrors.location = 'Please enter a valid location'
+    return `${formData.date}T${formData.time}`
+  }, [formData.date, formData.time])
+
+  function validate(): boolean {
+    const nextErrors: FormErrors = {}
+
+    if (!formData.eventType) {
+      nextErrors.eventType = 'Please select an event type.'
     }
 
-    if (formData.guestCount < 20) {
-      newErrors.guests = 'Minimum 20 guests required'
-    } else if (formData.guestCount > 500) {
-      newErrors.guests = 'Maximum 500 guests allowed'
+    if (
+      !Number.isInteger(formData.guestCount) ||
+      formData.guestCount < 20 ||
+      formData.guestCount > 500
+    ) {
+      nextErrors.guestCount =
+        'Guest count must be between 20 and 500.'
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    if (!formData.date) {
+      nextErrors.date = 'Please select your event date.'
+    }
+
+    if (!formData.time) {
+      nextErrors.time = 'Please select your event time.'
+    }
+
+    if (
+      !formData.location.trim() ||
+      formData.location.trim().length < 3
+    ) {
+      nextErrors.location =
+        'Please enter a valid event location.'
+    }
+
+    if (!formData.phone.trim()) {
+      nextErrors.phone = 'Phone number is required.'
+    } else if (formData.phone.trim().length < 7) {
+      nextErrors.phone =
+        'Please enter a valid phone number.'
+    }
+
+    if (formData.date && formData.time) {
+      const eventDate = new Date(combinedDateTime)
+
+      if (
+        Number.isNaN(eventDate.getTime()) ||
+        eventDate.getTime() <= Date.now()
+      ) {
+        nextErrors.date =
+          'Please choose a future date and time.'
+      }
+    }
+
+    setErrors(nextErrors)
+
+    return Object.keys(nextErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateForm()) {
+  function buildWhatsAppMessage(
+    createdBookingId: string
+  ) {
+    const dietary =
+      formData.dietaryNeeds.length > 0
+        ? formData.dietaryNeeds.join(', ')
+        : 'None specified'
+
+    const message = [
+      'Hello Jaisol Catering 👋',
+      '',
+      'I would like to enquire about catering for an event.',
+      '',
+      `Booking Reference: ${createdBookingId}`,
+      '',
+      'EVENT DETAILS',
+      `Event: ${formData.eventType}`,
+      `Guests: ${formData.guestCount}`,
+      `Date: ${formData.date}`,
+      `Time: ${formData.time}`,
+      `Location: ${formData.location}`,
+      '',
+      'DIETARY REQUIREMENTS',
+      dietary,
+      '',
+      'ADDITIONAL NOTES',
+      formData.notes.trim() || 'None',
+      '',
+      'CUSTOMER DETAILS',
+      `Name: ${userName || 'Not provided'}`,
+      `Email: ${userEmail || 'Not provided'}`,
+      `Phone: ${formData.phone}`,
+      '',
+      'I would like to discuss the menu, catering options,',
+      'allergies, final requirements and pricing.',
+    ].join('\n')
+
+    return message
+  }
+
+  async function handleSubmit() {
+    setSubmitError('')
+
+    if (status === 'loading') {
       return
     }
 
-    if (status !== 'authenticated' || !session?.user) {
-      router.push(`/sign-in?callbackUrl=${encodeURIComponent('/book')}`)
+    if (!session?.user?.id) {
+      router.push(
+        `/sign-in?callbackUrl=${encodeURIComponent('/book')}`
+      )
+
       return
     }
 
-    setLoading(true)
+    if (!validate()) {
+      return
+    }
+
+    if (!WHATSAPP_NUMBER) {
+      setSubmitError(
+        'WhatsApp is not configured. Please contact the administrator.'
+      )
+
+      return
+    }
 
     try {
-      await createCateringBooking(formData)
-    } catch (error) {
-      setErrors({ submit: 'Unable to save your booking request. Please try again.' })
-      setLoading(false)
-      return
-    }
+      setIsSubmitting(true)
 
-    // Send to WhatsApp
-    const message = `
-🎉 *New Catering Booking Request*
-
-*Event Type:* ${formData.eventType}
-*Guest Count:* ${formData.guestCount} guests
-*Date:* ${formData.date}
-*Location:* ${formData.location}
-*Estimated Cost:* £${(formData.guestCount * 15).toFixed(2)}
-*Dietary Needs:* ${formData.dietaryNeeds.length > 0 ? formData.dietaryNeeds.join(', ') : 'None'}
-*Additional Notes:* ${formData.notes || 'None'}
-
-Please confirm availability and send full quote.
-    `.trim()
-
-    const encodedMessage = encodeURIComponent(message)
-    const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '1234567890'
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
-    window.open(whatsappUrl, '_blank')
-
-    setSubmitted(true)
-    setLoading(false)
-    setTimeout(() => {
-      setSubmitted(false)
-      setFormData({
-        eventType: 'Wedding',
-        guestCount: 50,
-        date: '',
-        location: '',
-        dietaryNeeds: [],
-        notes: '',
+      const booking = await createCateringBooking({
+        eventType: formData.eventType,
+        guestCount: formData.guestCount,
+        date: combinedDateTime,
+        location: formData.location,
+        phone: formData.phone,
+        dietaryNeeds: formData.dietaryNeeds,
+        notes: formData.notes,
       })
-    }, 2000)
-  }
 
-  const toggleDietary = (option: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      dietaryNeeds: prev.dietaryNeeds.includes(option)
-        ? prev.dietaryNeeds.filter((d) => d !== option)
-        : [...prev.dietaryNeeds, option],
-    }))
+      setBookingId(booking.id)
+
+      const message = buildWhatsAppMessage(booking.id)
+
+      const whatsappUrl =
+        `https://wa.me/${WHATSAPP_NUMBER}` +
+        `?text=${encodeURIComponent(message)}`
+
+      window.open(
+        whatsappUrl,
+        '_blank',
+        'noopener,noreferrer'
+      )
+
+      setSubmitted(true)
+    } catch (error) {
+      console.error(error)
+
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.'
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (submitted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="text-6xl">✅</div>
-          <h2 className="text-2xl font-bold">Booking Request Sent!</h2>
-          <p className="text-muted-foreground">We&apos;ll review your request and get back to you within 24 hours.</p>
-          <Link href="/">
-            <Button className="mt-4 bg-orange-500 hover:bg-orange-600">Back to Home</Button>
-          </Link>
-        </div>
-      </div>
-    )
+    return <BookingSuccess bookingId={bookingId} />
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur px-4 py-3">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="p-2 hover:bg-secondary rounded-lg transition -ml-2">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold">Book Catering</h1>
-            <p className="text-xs text-muted-foreground">Available across the UK</p>
-          </div>
-        </div>
-      </header>
+    <main className="min-h-screen bg-background pb-28">
+      <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-10">
+        <Link
+          href="/"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to home
+        </Link>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6">
-        {/* Event Type */}
-        <div className="space-y-3">
-          <Label className="text-base font-semibold">Event Type</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {EVENT_TYPES.map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setFormData((prev) => ({ ...prev, eventType: type }))}
-                className={`px-4 py-3 rounded-lg font-medium transition ${
-                  formData.eventType === type
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-secondary border border-border hover:border-orange-500'
-                }`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-        </div>
+        <BookingHeader />
 
-        {/* Guest Count */}
-        <div className="space-y-2">
-          <Label htmlFor="guests">Number of Guests (20-500)</Label>
-          <div className="flex items-center gap-3">
-            <input
-              type="range"
-              id="guests"
-              min="20"
-              max="500"
-              value={formData.guestCount}
-              onChange={(e) => {
-                setFormData((prev) => ({ ...prev, guestCount: parseInt(e.target.value) }))
-                if (errors.guests) setErrors({ ...errors, guests: '' })
+        {submitError && (
+          <div className="mb-6 flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+
+            <div>
+              <p className="font-semibold text-destructive">
+                We couldn&apos;t submit your request
+              </p>
+
+              <p className="mt-1 text-foreground/80">
+                {submitError}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="space-y-5">
+            <EventTypeSelector
+              value={formData.eventType}
+              onChange={(value) => {
+                setFormData((current) => ({
+                  ...current,
+                  eventType: value,
+                }))
+
+                setErrors((current) => ({
+                  ...current,
+                  eventType: undefined,
+                }))
               }}
-              className="flex-1 h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-orange-500"
+              error={errors.eventType}
             />
-            <span className="text-lg font-bold text-orange-500 w-16 text-right">
-              {formData.guestCount}
-            </span>
+
+            <GuestCountSelector
+              value={formData.guestCount}
+              onChange={(value) => {
+                setFormData((current) => ({
+                  ...current,
+                  guestCount: value,
+                }))
+
+                setErrors((current) => ({
+                  ...current,
+                  guestCount: undefined,
+                }))
+              }}
+              error={errors.guestCount}
+            />
+
+            <EventDetailsForm
+              date={formData.date}
+              time={formData.time}
+              location={formData.location}
+              onDateChange={(value) => {
+                setFormData((current) => ({
+                  ...current,
+                  date: value,
+                }))
+
+                setErrors((current) => ({
+                  ...current,
+                  date: undefined,
+                }))
+              }}
+              onTimeChange={(value) => {
+                setFormData((current) => ({
+                  ...current,
+                  time: value,
+                }))
+
+                setErrors((current) => ({
+                  ...current,
+                  time: undefined,
+                }))
+              }}
+              onLocationChange={(value) => {
+                setFormData((current) => ({
+                  ...current,
+                  location: value,
+                }))
+
+                setErrors((current) => ({
+                  ...current,
+                  location: undefined,
+                }))
+              }}
+              errors={{
+                date: errors.date,
+                location: errors.location,
+              }}
+            />
+
+            <DietarySelector
+              value={formData.dietaryNeeds}
+              onChange={(value) =>
+                setFormData((current) => ({
+                  ...current,
+                  dietaryNeeds: value,
+                }))
+              }
+            />
+
+            <BookingNotes
+              value={formData.notes}
+              onChange={(value) =>
+                setFormData((current) => ({
+                  ...current,
+                  notes: value,
+                }))
+              }
+            />
+
+            <section className="rounded-2xl border border-border bg-card p-5 md:p-6">
+              <div className="mb-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">
+                  Contact details
+                </p>
+
+                <h2 className="mt-1 text-xl font-bold">
+                  How can we reach you?
+                </h2>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Your account details are already filled in.
+                  Please provide your phone number so we can
+                  continue the conversation on WhatsApp.
+                </p>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Name</Label>
+
+                  <Input
+                    value={userName}
+                    disabled
+                    className="bg-secondary"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Email</Label>
+
+                  <Input
+                    value={userEmail}
+                    disabled
+                    className="bg-secondary"
+                  />
+                </div>
+
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="booking-phone">
+                    Phone number{' '}
+                    <span className="text-destructive">*</span>
+                  </Label>
+
+                  <Input
+                    id="booking-phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(event) => {
+                      setFormData((current) => ({
+                        ...current,
+                        phone: event.target.value,
+                      }))
+
+                      setErrors((current) => ({
+                        ...current,
+                        phone: undefined,
+                      }))
+                    }}
+                    placeholder="+44 7XXX XXXXXX"
+                  />
+
+                  {errors.phone && (
+                    <p className="text-sm text-destructive">
+                      {errors.phone}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <div className="lg:hidden">
+              <BookingSummary
+                eventType={formData.eventType}
+                guestCount={formData.guestCount}
+                date={formData.date}
+                time={formData.time}
+                location={formData.location}
+                dietaryNeeds={formData.dietaryNeeds}
+              />
+            </div>
+
+            <div className="hidden lg:block">
+              <BookingSubmit
+                isSubmitting={isSubmitting}
+                onClick={handleSubmit}
+              />
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Estimated cost: £{(formData.guestCount * 15).toFixed(2)}
-          </p>
-          {errors.guests && <p className="text-red-400 text-sm">{errors.guests}</p>}
-        </div>
 
-        {/* Date */}
-        <div className="space-y-2">
-          <Label htmlFor="date">Event Date *</Label>
-          <Input
-            id="date"
-            type="date"
-            value={formData.date}
-            onChange={(e) => {
-              setFormData((prev) => ({ ...prev, date: e.target.value }))
-              if (errors.date) setErrors({ ...errors, date: '' })
-            }}
-            className={`bg-secondary border-border ${errors.date ? 'border-red-500 border-2' : ''}`}
-          />
-          {errors.date && <p className="text-red-400 text-sm">{errors.date}</p>}
-        </div>
-
-        {/* Location */}
-        <div className="space-y-2">
-          <Label htmlFor="location">Location / Venue *</Label>
-          <Input
-            id="location"
-            type="text"
-            placeholder="Manchester, London, Birmingham, etc."
-            value={formData.location}
-            onChange={(e) => {
-              setFormData((prev) => ({ ...prev, location: e.target.value }))
-              if (errors.location) setErrors({ ...errors, location: '' })
-            }}
-            className={`bg-secondary border-border ${errors.location ? 'border-red-500 border-2' : ''}`}
-          />
-          {errors.location && <p className="text-red-400 text-sm">{errors.location}</p>}
-        </div>
-
-        {/* Dietary Requirements */}
-        <div className="space-y-3">
-          <Label className="text-base font-semibold">Dietary Requirements</Label>
-          <div className="flex flex-wrap gap-2">
-            {DIETARY_OPTIONS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => toggleDietary(option)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                  formData.dietaryNeeds.includes(option)
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-secondary border border-border hover:border-orange-500'
-                }`}
-              >
-                {option}
-              </button>
-            ))}
+          <div className="hidden lg:block">
+            <BookingSummary
+              eventType={formData.eventType}
+              guestCount={formData.guestCount}
+              date={formData.date}
+              time={formData.time}
+              location={formData.location}
+              dietaryNeeds={formData.dietaryNeeds}
+            />
           </div>
         </div>
+      </div>
 
-        {/* Additional Notes */}
-        <div className="space-y-2">
-          <Label htmlFor="notes">Additional Information (Optional)</Label>
-          <textarea
-            id="notes"
-            placeholder="Tell us about your vision, menu preferences, or any special requests..."
-            value={formData.notes}
-            onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
-            className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:border-orange-500 resize-none"
-            rows={4}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 p-3 backdrop-blur lg:hidden">
+        <div className="mx-auto max-w-7xl">
+          <BookingSubmit
+            isSubmitting={isSubmitting}
+            onClick={handleSubmit}
           />
         </div>
-
-        {/* Submit Button */}
-        <div className="fixed bottom-20 left-0 right-0 px-4 py-3 bg-background border-t border-border">
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-6"
-          >
-            {loading ? 'Sending request...' : 'Book Catering'}
-          </Button>
-          {errors.submit && <p className="mt-2 text-center text-sm text-red-400">{errors.submit}</p>}
-        </div>
-      </form>
-
-      <div className="h-20" />
-    </div>
+      </div>
+    </main>
   )
 }

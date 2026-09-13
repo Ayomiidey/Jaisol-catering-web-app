@@ -1,10 +1,20 @@
-'use client'
+"use client"
 
-import { useSession, signOut } from 'next-auth/react'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { LogOut, User, ShoppingBag, UtensilsCrossed, ShieldCheck } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { useSession, signOut } from "next-auth/react"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import {
+  LogOut,
+  User,
+  ShoppingBag,
+  UtensilsCrossed,
+  ShieldCheck,
+  ArrowRight,
+  CalendarDays,
+  MapPin,
+  Clock3,
+} from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
 
 interface Order {
   id: string
@@ -20,241 +30,454 @@ interface Booking {
   date: string
   location: string
   status: string
+  eventTime?: string | null
+}
+
+function getStatusClasses(status: string) {
+  switch (status.toLowerCase()) {
+    case "delivered":
+    case "confirmed":
+    case "completed":
+      return "bg-primary/15 text-primary"
+
+    case "making":
+    case "processing":
+      return "bg-blue-500/10 text-blue-500"
+
+    case "pending":
+      return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+
+    case "cancelled":
+      return "bg-destructive/10 text-destructive"
+
+    default:
+      return "bg-secondary text-muted-foreground"
+  }
 }
 
 export function Account() {
   const { data: session, status } = useSession()
-  const { data: ordersData, isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: ['user-orders', (session?.user as { id?: string } | undefined)?.id],
-    queryFn: async () => {
-      const response = await fetch('/api/orders/user')
-      if (!response.ok) throw new Error('Failed to fetch orders')
-      return response.json()
-    },
-    enabled: status === 'authenticated' && !!session?.user,
-    retry: 2,
-  })
 
-  const { data: bookingsData } = useQuery<Booking[]>({
-    queryKey: ['user-bookings'],
-    queryFn: async () => {
-      const response = await fetch('/api/catering/user')
-      if (!response.ok) return []
-      return response.json()
-    },
-    enabled: status === 'authenticated' && !!session?.user,
-  })
+  const userId = (
+    session?.user as { id?: string } | undefined
+  )?.id
+
+  const { data: ordersData, isLoading: ordersLoading } =
+    useQuery<Order[]>({
+      queryKey: ["user-orders", userId],
+
+      queryFn: async () => {
+        const response = await fetch("/api/orders/user")
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch orders")
+        }
+
+        return response.json()
+      },
+
+      enabled: status === "authenticated" && !!userId,
+      retry: 2,
+    })
+
+  const { data: bookingsData, isLoading: bookingsLoading } =
+    useQuery<Booking[]>({
+      queryKey: ["user-bookings", userId],
+
+      queryFn: async () => {
+        const response = await fetch("/api/catering/user")
+
+        if (!response.ok) {
+          return []
+        }
+
+        return response.json()
+      },
+
+      enabled: status === "authenticated" && !!userId,
+    })
 
   const orders = ordersData ?? []
   const bookings = bookingsData ?? []
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'delivered':
-      case 'confirmed':
-        return 'text-green-500'
-      case 'making':
-      case 'processing':
-        return 'text-orange-500'
-      case 'pending':
-        return 'text-yellow-500'
-      case 'cancelled':
-        return 'text-red-500'
-      default:
-        return 'text-gray-500'
-    }
-  }
-
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center pb-24">
-        <p className="text-muted-foreground">Loading account...</p>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+
+          <p className="text-sm text-muted-foreground">
+            Loading your account...
+          </p>
+        </div>
       </div>
     )
   }
 
+  /*
+   * NOT AUTHENTICATED
+   */
   if (!session?.user) {
     return (
-      <div className="min-h-screen bg-background text-foreground pb-24">
-        <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur px-4 py-3">
-          <h1 className="text-xl font-bold">My Account</h1>
-        </header>
+      <div className="min-h-screen bg-background px-4 pb-28 pt-10">
+        <div className="mx-auto max-w-md">
+          <div className="mb-10 text-center">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15">
+              <User className="h-8 w-8 text-primary" />
+            </div>
 
-        <section className="px-4 py-12 text-center space-y-4">
-          <div className="mx-auto w-14 h-14 rounded-full bg-secondary flex items-center justify-center">
-            <User className="w-7 h-7 text-orange-500" />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold">Sign in to manage your orders</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              View order history, catering requests, and checkout faster.
+            <h1 className="text-3xl font-bold tracking-tight">
+              My Account
+            </h1>
+
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Sign in to manage your orders, catering bookings,
+              and account.
             </p>
           </div>
-          <div className="grid gap-3">
-            <Link href="/sign-in">
-              <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/sign-up">
-              <Button className="w-full bg-secondary hover:bg-secondary/80 border border-border">
-                Create Account
-              </Button>
-            </Link>
+
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="space-y-3">
+              <Link href="/sign-in" className="block">
+                <Button className="h-12 w-full rounded-xl bg-primary font-semibold text-primary-foreground hover:opacity-90">
+                  Sign In
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+
+              <Link href="/sign-up" className="block">
+                <Button
+                  variant="outline"
+                  className="h-12 w-full rounded-xl"
+                >
+                  Create Account
+                </Button>
+              </Link>
+            </div>
           </div>
-        </section>
+        </div>
       </div>
     )
   }
 
+  const firstName =
+    session.user.name?.split(" ")[0] || "there"
+
+  const initial =
+    session.user.name?.charAt(0).toUpperCase() || "U"
+
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur px-4 py-3">
-        <h1 className="text-xl font-bold">My Account</h1>
-      </header>
+    <div className="min-h-screen bg-background pb-28">
+      <div className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-10">
 
-      {/* Profile Section */}
-      <section className="px-4 py-6 border-b border-border">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-            <span className="text-xl font-bold text-white">
-              {session?.user?.name?.charAt(0) || 'A'}
-            </span>
-          </div>
-          <div className="flex-1">
-            <h2 className="font-semibold text-lg">{session?.user?.name || 'User'}</h2>
-            <p className="text-sm text-muted-foreground">{session?.user?.email}</p>
-          </div>
-        </div>
-      </section>
+        {/* Page heading */}
+        <div className="mb-8">
+          <p className="text-sm font-medium text-primary">
+            MY ACCOUNT
+          </p>
 
-      {/* Recent Orders */}
-      <section className="px-4 py-6 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5" />
-            Recent Orders
-          </h3>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-4xl">
+            Welcome back, {firstName}
+          </h1>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            Manage your orders and catering bookings.
+          </p>
         </div>
 
-        {ordersLoading ? (
-          <div className="py-8 text-center text-sm text-muted-foreground">Loading recent orders...</div>
-        ) : orders.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground text-sm mb-4">No orders yet</p>
-            <Link href="/explore">
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white">
-                Start Ordering
-              </Button>
-            </Link>
+        {/* Profile */}
+        <section className="mb-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <div className="h-2 bg-primary" />
+
+          <div className="flex items-center gap-4 p-5 md:p-6">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground">
+              {initial}
+            </div>
+
+            <div className="min-w-0">
+              <h2 className="truncate text-lg font-semibold">
+                {session.user.name || "User"}
+              </h2>
+
+              <p className="truncate text-sm text-muted-foreground">
+                {session.user.email}
+              </p>
+
+              <span className="mt-2 inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                Customer
+              </span>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="p-4 rounded-lg bg-secondary border border-border hover:border-orange-500 transition"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-semibold text-sm line-clamp-2">
-                    {Array.isArray(order.items) ? order.items.join(' + ') : order.items}
-                  </h4>
-                  <span className={`text-xs font-bold ${getStatusColor(order.status)}`}>
-                    {order.status}
-                  </span>
+        </section>
+
+        {/* Stats */}
+        <div className="mb-8 grid grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+              <ShoppingBag className="h-5 w-5 text-primary" />
+            </div>
+
+            <p className="text-2xl font-bold">
+              {orders.length}
+            </p>
+
+            <p className="text-sm text-muted-foreground">
+              Total Orders
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+              <UtensilsCrossed className="h-5 w-5 text-primary" />
+            </div>
+
+            <p className="text-2xl font-bold">
+              {bookings.length}
+            </p>
+
+            <p className="text-sm text-muted-foreground">
+              Catering Bookings
+            </p>
+          </div>
+        </div>
+
+        {/* Orders */}
+        <section className="mb-8">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                Food Orders
+              </p>
+
+              <h2 className="mt-1 text-xl font-bold">
+                Recent Orders
+              </h2>
+            </div>
+          </div>
+
+          {ordersLoading ? (
+            <div className="rounded-2xl border border-border bg-card p-8 text-center">
+              <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+
+              <p className="text-sm text-muted-foreground">
+                Loading orders...
+              </p>
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+              <ShoppingBag className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+
+              <p className="font-medium">
+                No orders yet
+              </p>
+
+              <p className="mt-1 text-sm text-muted-foreground">
+                Ready for something delicious?
+              </p>
+
+              <Link href="/explore" className="mt-5 inline-block">
+                <Button className="rounded-xl bg-primary text-primary-foreground hover:opacity-90">
+                  Explore Menu
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {orders.map((order) => (
+                <div
+                  key={order.id}
+                  className="rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/50 md:p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <h3 className="line-clamp-2 font-semibold">
+                        {Array.isArray(order.items)
+                          ? order.items.join(" + ")
+                          : order.items}
+                      </h3>
+
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {order.date}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusClasses(
+                        order.status
+                      )}`}
+                    >
+                      {order.status}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 border-t border-border pt-3">
+                    <p className="text-lg font-bold text-primary">
+                      £{order.amount.toFixed(2)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{order.date}</span>
-                  <span className="font-semibold text-orange-500">£{order.amount.toFixed(2)}</span>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Catering */}
+        <section className="mb-8">
+          <div className="mb-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Events
+            </p>
+
+            <h2 className="mt-1 text-xl font-bold">
+              Catering Bookings
+            </h2>
+          </div>
+
+          {bookingsLoading ? (
+            <div className="rounded-2xl border border-border bg-card p-8 text-center">
+              <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+
+              <p className="text-sm text-muted-foreground">
+                Loading bookings...
+              </p>
+            </div>
+          ) : bookings.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+              <UtensilsCrossed className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+
+              <p className="font-medium">
+                No catering bookings yet
+              </p>
+
+              <p className="mt-1 text-sm text-muted-foreground">
+                Planning an event? Let Jaisol handle the food.
+              </p>
+
+              <Link href="/book" className="mt-5 inline-block">
+                <Button className="rounded-xl bg-primary text-primary-foreground hover:opacity-90">
+                  Book Catering
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {bookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  className="rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/50 md:p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-semibold">
+                        {booking.event}
+                      </h3>
+
+                      <div className="mt-2 space-y-1.5">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <CalendarDays className="h-3.5 w-3.5" />
+                          {booking.date}
+                        </div>
+
+                        {booking.eventTime && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock3 className="h-3.5 w-3.5" />
+                            {booking.eventTime}
+                          </div>
+                        )}
+
+                        <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                          <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                          <span>{booking.location}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusClasses(
+                        booking.status
+                      )}`}
+                    >
+                      {booking.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Admin */}
+        {(
+          session.user as {
+            isAdmin?: boolean
+          }
+        ).isAdmin && (
+          <section className="mb-8">
+            <Link href="/admin" className="block">
+              <div className="rounded-2xl border border-primary/30 bg-primary/10 p-4 transition hover:bg-primary/15 md:p-5">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary">
+                    <ShieldCheck className="h-5 w-5 text-primary-foreground" />
+                  </div>
+
+                  <div className="flex-1">
+                    <p className="font-semibold">
+                      Admin Dashboard
+                    </p>
+
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Manage orders, bookings and menu
+                    </p>
+                  </div>
+
+                  <ArrowRight className="h-5 w-5 text-primary" />
                 </div>
               </div>
-            ))}
-          </div>
+            </Link>
+          </section>
         )}
-      </section>
 
-      {/* Upcoming Catering */}
-      <section className="px-4 py-6 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <UtensilsCrossed className="w-5 h-5" />
-            Upcoming Catering
-          </h3>
-        </div>
+        {/* Quick Actions */}
+        <section className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="mb-4 font-semibold">
+            Quick Actions
+          </h2>
 
-        {bookings.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground text-sm mb-4">No catering bookings yet</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link href="/explore">
+              <Button className="h-12 w-full rounded-xl bg-primary font-semibold text-primary-foreground hover:opacity-90">
+                Order Food
+              </Button>
+            </Link>
+
             <Link href="/book">
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+              <Button
+                variant="outline"
+                className="h-12 w-full rounded-xl"
+              >
                 Book Catering
               </Button>
             </Link>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {bookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="p-4 rounded-lg bg-secondary border border-border hover:border-orange-500 transition"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-semibold text-sm">{booking.event}</h4>
-                  <span className={`text-xs font-bold ${getStatusColor(booking.status)}`}>
-                    {booking.status}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    {booking.date} · {booking.location}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Admin Access (if admin) */}
-      {(session?.user as any)?.isAdmin && (
-        <section className="px-4 py-4 border-b border-border">
-          <Link href="/admin">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/30 hover:bg-orange-500/20 transition">
-              <ShieldCheck className="w-5 h-5 text-orange-500" />
-              <div>
-                <p className="font-semibold text-sm text-orange-500">Admin Dashboard</p>
-                <p className="text-xs text-muted-foreground">Manage orders, bookings & menu</p>
-              </div>
-            </div>
-          </Link>
         </section>
-      )}
 
-      {/* Quick Actions */}
-      <section className="px-4 py-6 border-b border-border space-y-3">
-        <Link href="/explore">
-          <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
-            Order More Food
-          </Button>
-        </Link>
-        <Link href="/book">
-          <Button className="w-full bg-secondary hover:bg-secondary/80 border border-border">
-            Book Catering
-          </Button>
-        </Link>
-      </section>
-
-      {/* Sign Out */}
-      <section className="px-4 py-6">
+        {/* Sign out */}
         <button
-          onClick={() => signOut({ redirect: true, redirectTo: '/' })}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive font-medium transition"
+          type="button"
+          onClick={() =>
+            signOut({
+              redirect: true,
+              redirectTo: "/",
+            })
+          }
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 font-medium text-destructive transition hover:bg-destructive/10"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="h-4 w-4" />
           Sign Out
         </button>
-      </section>
+      </div>
     </div>
   )
 }
