@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShoppingCart, UtensilsCrossed, Search, Bell } from 'lucide-react'
 
 interface HomeHeaderProps {
@@ -13,8 +14,11 @@ export function HomeHeader({ greeting, cartCount }: HomeHeaderProps) {
     <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-            <UtensilsCrossed className="w-4 h-4 text-primary-foreground" />
+          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0 md:hidden">
+           <Image src="/images/Jaisol-Logo.jpeg" alt="Jaisol logo" width={36} height={36} className="w-full h-full object-cover" priority />
+          </div>
+          <div className="hidden md:flex w-9 h-9 rounded-full bg-primary items-center justify-center flex-shrink-0"> 
+            <UtensilsCrossed className="w-4 h-4 text-primary-foreground" /> 
           </div>
           <div>
             <p className="text-xs text-muted-foreground">What are you craving today?</p>
@@ -22,13 +26,13 @@ export function HomeHeader({ greeting, cartCount }: HomeHeaderProps) {
           </div>
         </div>
         <div className="flex gap-2">
-          <button className="p-2 hover:bg-secondary rounded-full transition">
+          {/* <button className="p-2 hover:bg-secondary rounded-full transition">
             <Search className="w-5 h-5 text-foreground" />
           </button>
           <button className="p-2 hover:bg-secondary rounded-full transition relative">
             <Bell className="w-5 h-5 text-foreground" />
-          </button>
-          <Link href="/cart" className="p-2 hover:bg-secondary rounded-full transition relative">
+          </button> */}
+          <Link href="/order" className="p-2 hover:bg-secondary rounded-full transition relative">
             <ShoppingCart className="w-5 h-5 text-foreground" />
             {cartCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 bg-accent text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
