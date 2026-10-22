@@ -32,7 +32,7 @@ export function HomeHeader({ greeting, cartCount }: HomeHeaderProps) {
           <button className="p-2 hover:bg-secondary rounded-full transition relative">
             <Bell className="w-5 h-5 text-foreground" />
           </button> */}
-          <Link href="/order" className="p-2 hover:bg-secondary rounded-full transition relative">
+          <Link href="/cart" className="p-2 hover:bg-secondary rounded-full transition relative">
             <ShoppingCart className="w-5 h-5 text-foreground" />
             {cartCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 bg-accent text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">

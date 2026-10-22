@@ -11,7 +11,7 @@ import { RootState } from '@/lib/store'
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/explore', label: 'Explore', icon: Compass },
-  { href: '/order', label: 'Order', icon: ShoppingBag },
+  { href: '/cart', label: 'Cart', icon: ShoppingBag },
   { href: '/book', label: 'Book', icon: UtensilsCrossed },
   { href: '/account', label: 'Account', icon: User },
 ]
@@ -67,7 +67,7 @@ export function DesktopHeader() {
               >
                 <Icon className="h-4 w-4" />
                 <span>{item.label}</span>
-                {item.href === '/order' && cartCount > 0 && (
+                {item.href === '/cart' && cartCount > 0 && (
                   <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1 text-xs font-bold">
                     {cartCount}
                   </span>

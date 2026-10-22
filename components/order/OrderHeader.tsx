@@ -19,7 +19,7 @@ export function OrderHeader() {
 
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Your Order
+            Your Cart
           </h1>
 
           <p className="text-sm text-muted-foreground">

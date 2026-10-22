@@ -14,7 +14,7 @@ export function OrderSummary({
   return (
     <section className="rounded-2xl border bg-card p-5 sm:p-6">
       <h2 className="text-lg font-semibold">
-        Order Summary
+        Cart Summary
       </h2>
 
       <div className="mt-6 space-y-4 text-sm">

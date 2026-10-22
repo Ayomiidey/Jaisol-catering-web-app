@@ -187,7 +187,7 @@ export default function ProductPage() {
 
           {/* Cart */}
           <Link
-            href="/order"
+            href="/cart"
             className="relative w-10 h-10 rounded-xl flex items-center justify-center hover:bg-secondary transition"
           >
             <ShoppingCart className="w-5 h-5" />
@@ -417,7 +417,7 @@ export default function ProductPage() {
                         </button>
                       </div>
 
-                      <Link href="/order" className="flex-1">
+                      <Link href="/cart" className="flex-1">
                         <Button className="w-full h-14 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-base">
                           View Cart
                           <span className="ml-2 opacity-80">·</span>
@@ -557,7 +557,7 @@ export default function ProductPage() {
                 </div>
 
                 {/* View cart */}
-                <Link href="/order" className="flex-1">
+                <Link href="/cart" className="flex-1">
                   <Button className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold">
                     View Cart · £
                     {(
@@ -710,7 +710,7 @@ export default function ProductPage() {
 //           <ArrowLeft className="w-5 h-5" />
 //         </button>
 //         <h1 className="text-lg font-semibold truncate max-w-[200px]">{item.name}</h1>
-//         <Link href="/order" className="p-2 hover:bg-secondary rounded-lg transition relative">
+//         <Link href="/cart" className="p-2 hover:bg-secondary rounded-lg transition relative">
 //           <ShoppingCart className="w-5 h-5" />
 //           {cartItems.length > 0 && (
 //             <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center">
@@ -858,7 +858,7 @@ export default function ProductPage() {
 //                   <Plus className="w-4 h-4 text-white" />
 //                 </button>
 //               </div>
-//               <Link href="/order" className="flex-1 ml-3">
+//               <Link href="/cart" className="flex-1 ml-3">
 //                 <Button className="w-full bg-orange-500 hover:bg-orange-600 font-semibold py-6">
 //                   View Cart · £{((cartItems.find(c => c.menuItemId === id)?.price ?? item.price) * quantity).toFixed(2)}
 //                 </Button>

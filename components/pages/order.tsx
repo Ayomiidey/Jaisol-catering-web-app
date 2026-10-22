@@ -84,7 +84,7 @@ export function Order() {
 
     if (status !== 'authenticated' || !session?.user) {
       router.push(
-        `/sign-in?callbackUrl=${encodeURIComponent('/order')}`
+        `/sign-in?callbackUrl=${encodeURIComponent('/cart')}`
       )
       return
     }
@@ -111,7 +111,7 @@ export function Order() {
       if (!orderResponse.ok) {
         if (orderResponse.status === 401) {
           router.push(
-            `/sign-in?callbackUrl=${encodeURIComponent('/order')}`
+            `/sign-in?callbackUrl=${encodeURIComponent('/cart')}`
           )
           return
         }
@@ -798,7 +798,7 @@ Status: Pending confirmation
 //     }
 
 //     if (status !== 'authenticated' || !session?.user) {
-//       router.push(`/sign-in?callbackUrl=${encodeURIComponent('/order')}`)
+//       router.push(`/sign-in?callbackUrl=${encodeURIComponent('/cart')}`)
 //       return
 //     }
 
@@ -822,7 +822,7 @@ Status: Pending confirmation
 
 //       if (!orderResponse.ok) {
 //         if (orderResponse.status === 401) {
-//           router.push(`/sign-in?callbackUrl=${encodeURIComponent('/order')}`)
+//           router.push(`/sign-in?callbackUrl=${encodeURIComponent('/cart')}`)
 //           return
 //         }
 

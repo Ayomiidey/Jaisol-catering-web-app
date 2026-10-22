@@ -16,7 +16,7 @@ import { RootState } from '@/lib/store'
 const navItems = [
   { href: '/', icon: Home, label: 'Home' },
   { href: '/explore', icon: Compass, label: 'Explore' },
-  { href: '/order', icon: ShoppingBag, label: 'Order' },
+  { href: '/cart', icon: ShoppingBag, label: 'Cart' },
   { href: '/book', icon: UtensilsCrossed, label: 'Book' },
   { href: '/account', icon: User, label: 'Account' },
 ]
@@ -63,7 +63,7 @@ export function BottomNav() {
                 }`}
               />
 
-              {item.href === '/order' && cartCount > 0 && (
+              {item.href === '/cart' && cartCount > 0 && (
                 <span className="absolute right-2 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                   {cartCount}
                 </span>
@@ -93,7 +93,7 @@ export function BottomNav() {
 // const navItems = [
 //   { href: '/', icon: Home, label: 'Home' },
 //   { href: '/explore', icon: Compass, label: 'Explore' },
-//   { href: '/order', icon: ShoppingBag, label: 'Order' },
+//   { href: '/cart', icon: ShoppingBag, label: 'Cart' },
 //   { href: '/book', icon: UtensilsCrossed, label: 'Book' },
 //   { href: '/account', icon: User, label: 'Account' },
 // ]
@@ -129,7 +129,7 @@ export function BottomNav() {
 //               }`}
 //             >
 //               <Icon className="w-6 h-6" />
-//               {item.href === '/order' && cartCount > 0 && (
+//               {item.href === '/cart' && cartCount > 0 && (
 //                 <span className="absolute top-1 right-2 bg-orange-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
 //                   {cartCount}
 //                 </span>

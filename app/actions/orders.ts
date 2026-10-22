@@ -36,7 +36,7 @@ export async function createOrder(data: {
       include: { items: true },
     })
 
-    revalidatePath('/order')
+    revalidatePath('/cart')
     return order
   } catch (error) {
     console.error('Error creating order:', error)
