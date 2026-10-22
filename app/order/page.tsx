@@ -50,6 +50,7 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [orderId, setOrderId] = useState<string | undefined>()
+  const [whatsappUrl, setWhatsappUrl] = useState('')
 
   /*
    * --------------------------------
@@ -134,6 +135,9 @@ export default function OrderPage() {
       return
     }
 
+    // Reserve a tab during the click so the browser permits the later WhatsApp redirect.
+    const whatsappWindow = window.open('about:blank', '_blank')
+
     setLoading(true)
 
     try {
@@ -158,7 +162,6 @@ export default function OrderPage() {
         },
         body: JSON.stringify({
           items: cart.items,
-          totalPrice: cart.totalPrice + DELIVERY_FEE,
           deliveryAddress: deliveryAddress.trim(),
           phone: phone.trim(),
           notes: notes.trim(),
@@ -173,74 +176,49 @@ export default function OrderPage() {
         )
       }
 
-      /*
-       * Store order ID for success screen
-       */
-      setOrderId(orderData.order?.id)
 
-      /*
-       * --------------------------------
-       * WHATSAPP NOTIFICATION
-       * --------------------------------
-       */
+      const savedOrder = orderData.order
+      setOrderId(savedOrder.id)
 
-      const whatsappNumber =
-        process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
-        '447000000000'
-
-      const orderItems = cart.items
-        .map(
-          (item) =>
-            `${item.name} x${item.quantity} - £${(
-              item.price * item.quantity
-            ).toFixed(2)}`
+      const whatsappNumber = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, '')
+      const orderItems = (savedOrder.items as {
+        quantity: number
+        priceAtPurchase: number
+        menuItem: { name: string }
+      }[])
+        .map((item) =>
+          `- ${item.menuItem.name} x ${item.quantity} - GBP ${(
+            item.priceAtPurchase * item.quantity
+          ).toFixed(2)}`
         )
         .join('\n')
+      const whatsappMessage = [
+        'Hello Jaisol Catering! I would like to place this order.',
+        '',
+        `Order reference: ${savedOrder.id}`,
+        '',
+        'ORDER',
+        orderItems,
+        'Estimated total: GBP ' + Number(savedOrder.totalPrice).toFixed(2),
+        '',
+        'DELIVERY DETAILS',
+        `Name: ${session.user.name || 'Not provided'}`,
+        `Phone: ${phone.trim()}`,
+        `Address: ${deliveryAddress.trim()}`,
+        `Notes: ${notes.trim() || 'None'}`,
+        '',
+        'Please confirm availability and let me know the payment options.',
+      ].join('\n')
 
-      const whatsappMessage = `
-New Jaisol Catering Order
+      const nextWhatsappUrl = whatsappNumber
+        ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`
+        : `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`
 
-Order ID: ${orderData.order?.id || 'N/A'}
-
-Items:
-${orderItems}
-
-Subtotal: £${cart.totalPrice.toFixed(2)}
-Delivery: £${DELIVERY_FEE.toFixed(2)}
-Total: £${(cart.totalPrice + DELIVERY_FEE).toFixed(2)}
-
-Delivery Address:
-${deliveryAddress.trim()}
-
-Phone:
-${phone.trim()}
-
-Special Instructions:
-${notes.trim() || 'None'}
-      `.trim()
-
-      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        whatsappMessage
-      )}`
-
-      window.open(whatsappUrl, '_blank')
-
-      /*
-       * Save order successfully
-       */
+      setWhatsappUrl(nextWhatsappUrl)
+      if (whatsappWindow) whatsappWindow.location.href = nextWhatsappUrl
       setSubmitted(true)
-
-      /*
-       * Clear cart after successful order
-       */
-      setTimeout(() => {
-        dispatch(clearCart())
-
-        setDeliveryAddress('')
-        setPhone('')
-        setNotes('')
-      }, 2000)
     } catch (error) {
+      whatsappWindow?.close()
       console.error('Checkout error:', error)
 
       setErrors({
@@ -261,7 +239,22 @@ ${notes.trim() || 'None'}
    */
 
   if (submitted) {
-    return <OrderSuccess orderId={orderId} />
+    return (
+      <OrderSuccess
+        orderId={orderId}
+        whatsappUrl={whatsappUrl}
+        onMessageSent={() => {
+          dispatch(clearCart())
+          setDeliveryAddress('')
+          setPhone('')
+          setNotes('')
+          setSubmitted(false)
+          setOrderId(undefined)
+          setWhatsappUrl('')
+          router.push('/explore')
+        }}
+      />
+    )
   }
 
   /*
@@ -347,7 +340,7 @@ ${notes.trim() || 'None'}
               disabled={loading}
               className="mt-4 hidden w-full rounded-xl bg-primary px-5 py-4 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 lg:block"
             >
-              {loading ? 'Processing...' : 'Place Order'}
+              {loading ? 'Preparing your order…' : 'Send order on WhatsApp'}
             </button>
 
             {errors.cart && (
@@ -367,7 +360,7 @@ ${notes.trim() || 'None'}
           disabled={loading}
           className="w-full rounded-xl bg-primary px-5 py-4 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? 'Processing...' : 'Place Order'}
+          {loading ? 'Preparing your order…' : 'Send order on WhatsApp'}
         </button>
       </div>
     </main>

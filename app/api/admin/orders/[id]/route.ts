@@ -15,7 +15,7 @@ export async function PATCH(
     const { id } = await params
     const { status } = await req.json()
 
-    const validStatuses = ['pending', 'confirmed', 'making', 'ready', 'delivered', 'cancelled']
+    const validStatuses = ['awaiting_whatsapp_confirmation', 'pending', 'confirmed', 'making', 'ready', 'delivered', 'cancelled']
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }

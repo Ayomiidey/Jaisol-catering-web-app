@@ -6,9 +6,10 @@ import { ArrowLeft, RefreshCw, ChevronDown } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
-const ORDER_STATUSES = ['pending', 'confirmed', 'making', 'ready', 'delivered', 'cancelled']
+const ORDER_STATUSES = ['awaiting_whatsapp_confirmation', 'pending', 'confirmed', 'making', 'ready', 'delivered', 'cancelled']
 
 const statusColors: Record<string, string> = {
+  awaiting_whatsapp_confirmation: 'bg-yellow-500/20 text-yellow-400',
   pending: 'bg-yellow-500/20 text-yellow-400',
   confirmed: 'bg-blue-500/20 text-blue-400',
   making: 'bg-orange-500/20 text-orange-400',
@@ -16,6 +17,11 @@ const statusColors: Record<string, string> = {
   delivered: 'bg-green-500/20 text-green-400',
   cancelled: 'bg-red-500/20 text-red-400',
 }
+
+const statusLabel = (status: string) =>
+  status === 'awaiting_whatsapp_confirmation'
+    ? 'Awaiting WhatsApp'
+    : status.charAt(0).toUpperCase() + status.slice(1)
 
 interface OrderItem {
   id: string
@@ -94,7 +100,9 @@ function OrdersContent() {
             </Link>
             <div>
               <h1 className="text-2xl md:text-4xl font-bold">Orders</h1>
-              <p className="text-muted-foreground text-sm">Manage all food orders</p>
+              <p className="text-muted-foreground text-sm">
+                Awaiting WhatsApp orders are saved here until the customer sends their message.
+              </p>
             </div>
           </div>
           <button onClick={() => refetch()} className="p-2 hover:bg-secondary rounded-lg transition">
@@ -111,7 +119,7 @@ function OrdersContent() {
                 statusFilter === s ? 'bg-orange-500 text-white' : 'bg-secondary hover:bg-secondary/80'
               }`}
             >
-              {s || 'All'}
+              {s ? statusLabel(s) : 'All'}
             </button>
           ))}
         </div>
@@ -147,7 +155,7 @@ function OrdersContent() {
                   </div>
                   <div>
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[order.status] ?? ''}`}>
-                      {order.status}
+                      {statusLabel(order.status)}
                     </span>
                   </div>
                   <div className="hidden md:flex items-center justify-end">
@@ -202,7 +210,7 @@ function OrdersContent() {
                                 : 'bg-secondary hover:bg-orange-500/20 border border-border'
                             }`}
                           >
-                            {s}
+                            {statusLabel(s)}
                           </button>
                         ))}
                       </div>

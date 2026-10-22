@@ -160,7 +160,7 @@ export default function ProductPage() {
       : productImages[0]
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-32 lg:pb-12">
+    <div className="min-h-screen bg-background text-foreground pb-40 lg:pb-12">
       {/* =====================================================
           HEADER
       ===================================================== */}
@@ -528,7 +528,7 @@ export default function ProductPage() {
       {/* =====================================================
           MOBILE FIXED CART BAR
       ===================================================== */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl px-4 py-3">
+      <div className="lg:hidden fixed bottom-[4.5rem] left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl px-4 py-3">
         <div className="max-w-7xl mx-auto">
           {item.isAvailable ? (
             quantity > 0 ? (
