@@ -19,6 +19,7 @@ export interface Order {
   deliveryAddress: string | null
   phone: string | null
   notes: string | null
+  allergies: string | null
 }
 
 export interface CateringBookingSummary {

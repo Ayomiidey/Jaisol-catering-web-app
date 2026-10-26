@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
         deliveryAddress: true,
         phone: true,
         notes: true,
+        allergies: true,
         items: {
           select: {
             menuItemId: true,
@@ -45,6 +46,7 @@ export async function GET(req: NextRequest) {
         deliveryAddress: order.deliveryAddress,
         phone: order.phone,
         notes: order.notes,
+        allergies: order.allergies,
       }
     })
 

@@ -37,6 +37,7 @@ interface Order {
   deliveryAddress: string
   phone: string
   notes?: string
+  allergies?: string | null
   createdAt: string
   user: { name: string; email: string }
   items: OrderItem[]
@@ -182,6 +183,12 @@ function OrdersContent() {
                         <div className="md:col-span-2">
                           <p className="text-muted-foreground mb-1">Notes</p>
                           <p className="italic">{order.notes}</p>
+                        </div>
+                      )}
+                      {order.allergies && (
+                        <div className="md:col-span-2 rounded-xl border border-destructive/20 bg-destructive/5 p-3">
+                          <p className="mb-1 font-semibold text-destructive">Customer allergy information</p>
+                          <p>{order.allergies}</p>
                         </div>
                       )}
                     </div>

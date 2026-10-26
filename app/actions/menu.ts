@@ -154,14 +154,14 @@ export async function seedMenuItems() {
         name: 'Mini Cakes',
         description: 'Assorted mini cake collection',
         price: 8.99,
-        category: 'Cakes',
+        category: 'Pastries',
         imageUrl: '/images/mini-cakes.png',
       },
       {
         name: 'Wedding Cake',
         description: 'Custom design - Herefordshire 2024',
         price: 0, // To be quoted
-        category: 'Cakes',
+        category: 'Pastries',
         imageUrl: '/images/wedding-cake.png',
       },
       {

@@ -16,6 +16,7 @@ interface CartState {
   deliveryAddress?: string
   phone?: string
   specialNotes?: string
+  foodAllergies?: string
 }
 
 const initialState: CartState = {
@@ -88,6 +89,7 @@ const cartSlice = createSlice({
       state.deliveryAddress = undefined
       state.phone = undefined
       state.specialNotes = undefined
+      state.foodAllergies = undefined
     },
 
     setDeliveryInfo: (
@@ -96,11 +98,13 @@ const cartSlice = createSlice({
         deliveryAddress?: string
         phone?: string
         specialNotes?: string
+        foodAllergies?: string
       }>
     ) => {
       state.deliveryAddress = action.payload.deliveryAddress
       state.phone = action.payload.phone
       state.specialNotes = action.payload.specialNotes
+      state.foodAllergies = action.payload.foodAllergies
     },
   },
 })

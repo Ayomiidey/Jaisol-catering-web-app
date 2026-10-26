@@ -21,7 +21,7 @@ const authOptions = NextAuth({
         }
 
         const email = String(credentials.email).trim().toLowerCase()
-        const demoAdminEmail = 'admin@jaisol.local'
+        const demoAdminEmail = 'admin@jaisol'
         const demoAdminPassword = 'Admin123!'
 
         if (email === demoAdminEmail && credentials.password === demoAdminPassword) {

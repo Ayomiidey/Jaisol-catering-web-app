@@ -9,7 +9,7 @@ async function main() {
   const adminPassword = await bcrypt.hash('Admin123!', 10)
 
   await prisma.user.upsert({
-    where: { email: 'admin@jaisol.local' },
+    where: { email: 'admin@jaisol' },
     update: {
       name: 'Admin User',
       password: adminPassword,
@@ -17,7 +17,7 @@ async function main() {
     },
     create: {
       name: 'Admin User',
-      email: 'admin@jaisol.local',
+      email: 'admin@jaisol',
       password: adminPassword,
       isAdmin: true,
     },
@@ -87,7 +87,7 @@ async function main() {
         name: 'Mini Cakes',
         description: 'Assorted decorated mini cakes',
         price: 14.99,
-        category: 'Cakes',
+        category: 'Pastries',
         imageUrl: '/images/mini-cakes.png',
         isAvailable: true,
       },
@@ -97,7 +97,7 @@ async function main() {
         name: 'Wedding Cake',
         description: 'Multi-tiered elegant cake',
         price: 89.99,
-        category: 'Cakes',
+        category: 'Pastries',
         imageUrl: '/images/wedding-cake.png',
         isAvailable: true,
       },

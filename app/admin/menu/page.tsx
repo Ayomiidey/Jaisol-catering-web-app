@@ -3,14 +3,12 @@
 import { AdminGuard } from '@/components/admin-guard'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Plus, Pencil, Trash2, RefreshCw, X, ChefHat, Link as LinkIcon, Upload } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, RefreshCw, X, ChefHat, Link as LinkIcon, Upload, Tags } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
-const CATEGORIES = ['Mains', 'Starters', 'Pastries', 'Cakes', 'Drinks', 'Sides']
 
 interface MenuItem {
   id: string
@@ -61,6 +59,14 @@ function MenuContent() {
     queryFn: async () => {
       const res = await fetch('/api/admin/menu')
       if (!res.ok) throw new Error('Failed to fetch')
+      return res.json()
+    },
+  })
+  const { data: categories = [] } = useQuery<Array<{ id: string | null; name: string }>>({
+    queryKey: ['admin-categories'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/categories')
+      if (!res.ok) throw new Error('Failed to fetch categories')
       return res.json()
     },
   })
@@ -154,21 +160,27 @@ function MenuContent() {
   }
 
   const openEdit = (item: MenuItem) => {
+    // Keep the selected main image in the gallery even for older products
+    // whose `images` array is empty but `imageUrl` is populated.
+    const imageUrls = Array.from(new Set([
+      ...(item.imageUrl ? [item.imageUrl] : []),
+      ...(item.images ?? []),
+    ]))
     setEditItem(item)
     setForm({
       name: item.name,
       description: item.description ?? '',
-      price: String(item.price),
+      price: Number(item.price).toFixed(2),
       category: item.category,
       imageUrl: '',
-      images: item.images ?? (item.imageUrl ? [item.imageUrl] : []),
+      images: imageUrls,
       isAvailable: item.isAvailable,
     })
     setFormError('')
     setImageSource('url')
     setImageFiles([])
-    setImagePreviews(item.images ?? (item.imageUrl ? [item.imageUrl] : []))
-    setMainImageIndex(Math.max(0, (item.images ?? []).indexOf(item.imageUrl ?? '')))
+    setImagePreviews(imageUrls)
+    setMainImageIndex(0)
     setModal('edit')
   }
 
@@ -240,6 +252,7 @@ function MenuContent() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Link href="/admin/categories" className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium transition hover:bg-secondary"><Tags className="h-4 w-4" /><span className="hidden sm:inline">Categories</span></Link>
             <button onClick={() => refetch()} className="p-2 hover:bg-secondary rounded-lg transition">
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -373,12 +386,17 @@ function MenuContent() {
                   <Label htmlFor="price">Price (£) *</Label>
                   <Input
                     id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={form.price}
+                    type="text"
+                    inputMode="decimal"
+                    value={form.price ?? ''}
                     onChange={(e) => setForm({ ...form, price: e.target.value })}
                     placeholder="12.99"
+                    onBlur={() => {
+                      const value = Number(form.price)
+                      if (form.price.trim() && Number.isFinite(value)) {
+                        setForm((current) => ({ ...current, price: value.toFixed(2) }))
+                      }
+                    }}
                     className="mt-1"
                   />
                 </div>
@@ -390,8 +408,8 @@ function MenuContent() {
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:border-primary"
                   >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                    {Array.from(new Set([form.category, ...categories.map((category) => category.name)])).map((category) => (
+                      <option key={category} value={category}>{category}</option>
                     ))}
                   </select>
                 </div>

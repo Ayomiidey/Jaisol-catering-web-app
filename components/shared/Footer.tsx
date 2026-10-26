@@ -5,7 +5,7 @@ const links = [
   { href: '/', label: 'Home' },
   { href: '/explore', label: 'Menu' },
   { href: '/book', label: 'Catering' },
-  { href: '/explore', label: 'Cakes' },
+  { href: '/explore', label: 'Baking & Pastries' },
   { href: '/about', label: 'About' },
 ]
 

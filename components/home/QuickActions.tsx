@@ -4,7 +4,7 @@ import { ShoppingCart, UtensilsCrossed, Cake } from 'lucide-react'
 const quickActions = [
   { href: '/explore', icon: ShoppingCart, label: 'Order food' },
   { href: '/book', icon: UtensilsCrossed, label: 'Book catering' },
-  { href: '/explore', icon: Cake, label: 'Custom cakes' },
+  { href: '/explore', icon: Cake, label: 'Baking & pastries' },
 ]
 
 export function QuickActions() {

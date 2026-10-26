@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { items, deliveryAddress, phone, notes } = await req.json()
+    const { items, deliveryAddress, phone, notes, allergies } = await req.json()
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -51,6 +51,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    if (allergies !== undefined && typeof allergies !== 'string') {
+      return NextResponse.json({ error: 'Allergy information must be text' }, { status: 400 })
+    }
+    if (typeof allergies === 'string' && allergies.length > 1000) {
+      return NextResponse.json({ error: 'Allergy information must be 1000 characters or fewer' }, { status: 400 })
+    }
+
     const menuItemIds = [...new Set(items.map((item: { menuItemId: string }) => item.menuItemId))]
     const menuItems = await db.menuItem.findMany({
       where: { id: { in: menuItemIds }, isAvailable: true },
@@ -79,6 +86,7 @@ export async function POST(req: NextRequest) {
         deliveryAddress: deliveryAddress.trim(),
         phone: phone.trim(),
         notes: typeof notes === 'string' ? notes.trim() : '',
+        allergies: typeof allergies === 'string' && allergies.trim() ? allergies.trim() : null,
         items: {
           create: items.map((item: { menuItemId: string; quantity: number; notes?: string }) => ({
             quantity: item.quantity,

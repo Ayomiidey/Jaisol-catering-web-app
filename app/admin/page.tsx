@@ -1,13 +1,14 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowUpRight, BarChart3, Images, LayoutDashboard, ShoppingBag, Utensils, UtensilsCrossed } from 'lucide-react'
+import { ArrowUpRight, BarChart3, Images, LayoutDashboard, ShoppingBag, Tags, Utensils, UtensilsCrossed } from 'lucide-react'
 import { AdminDashboardStats } from './stats-client'
 
 const sections = [
   { href: '/admin/orders', title: 'Orders', detail: 'Review orders and update fulfillment', icon: ShoppingBag },
   { href: '/admin/bookings', title: 'Catering bookings', detail: 'Respond to upcoming events', icon: UtensilsCrossed },
   { href: '/admin/menu', title: 'Menu', detail: 'Update dishes, availability and prices', icon: Utensils },
+  { href: '/admin/categories', title: 'Categories', detail: 'Create categories such as Meat or Seafood', icon: Tags },
   { href: '/admin/analytics', title: 'Analytics', detail: 'Track sales and popular items', icon: BarChart3 },
   { href: '/admin/carousel', title: 'Homepage slides', detail: 'Manage offers shown to customers', icon: Images },
 ]

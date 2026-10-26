@@ -6,6 +6,7 @@ interface DeliveryFormProps {
   deliveryAddress: string
   phone: string
   notes: string
+  allergies: string
   errors: {
     address?: string
     phone?: string
@@ -14,16 +15,19 @@ interface DeliveryFormProps {
   onAddressChange: (value: string) => void
   onPhoneChange: (value: string) => void
   onNotesChange: (value: string) => void
+  onAllergiesChange: (value: string) => void
 }
 
 export function DeliveryForm({
   deliveryAddress,
   phone,
   notes,
+  allergies,
   errors,
   onAddressChange,
   onPhoneChange,
   onNotesChange,
+  onAllergiesChange,
 }: DeliveryFormProps) {
   return (
     <section className="mt-8 rounded-2xl border bg-card p-5 sm:p-6">
@@ -62,6 +66,24 @@ export function DeliveryForm({
               {errors.address}
             </p>
           )}
+        </div>
+
+        {/* Allergies */}
+        <div>
+          <label htmlFor="allergies" className="mb-2 flex items-center gap-2 text-sm font-medium">
+            Allergies or food sensitivities
+            <span className="font-normal text-muted-foreground">(optional)</span>
+          </label>
+          <textarea
+            id="allergies"
+            value={allergies}
+            onChange={(event) => onAllergiesChange(event.target.value)}
+            placeholder="Let us know about any allergies we should be aware of"
+            maxLength={1000}
+            rows={3}
+            className="w-full resize-y rounded-xl border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">We’ll include this with your order details so our team can review it.</p>
         </div>
 
         {/* Phone */}

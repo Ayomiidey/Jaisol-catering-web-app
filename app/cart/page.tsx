@@ -45,6 +45,7 @@ export default function OrderPage() {
   const [notes, setNotes] = useState(
     cart.specialNotes || ''
   )
+  const [allergies, setAllergies] = useState(cart.foodAllergies || '')
 
   const [errors, setErrors] = useState<FormErrors>({})
   const [loading, setLoading] = useState(false)
@@ -161,6 +162,7 @@ export default function OrderPage() {
           deliveryAddress: deliveryAddress.trim(),
           phone: phone.trim(),
           specialNotes: notes.trim(),
+          foodAllergies: allergies.trim(),
         })
       )
 
@@ -177,6 +179,7 @@ export default function OrderPage() {
           deliveryAddress: deliveryAddress.trim(),
           phone: phone.trim(),
           notes: notes.trim(),
+          allergies: allergies.trim(),
         }),
       })
 
@@ -218,6 +221,7 @@ export default function OrderPage() {
         `Phone: ${phone.trim()}`,
         `Address: ${deliveryAddress.trim()}`,
         `Notes: ${notes.trim() || 'None'}`,
+        `Allergies or food sensitivities: ${allergies.trim() || 'None provided'}`,
         '',
         'Please confirm availability and let me know the payment options.',
       ].join('\n')
@@ -260,6 +264,7 @@ export default function OrderPage() {
           setDeliveryAddress('')
           setPhone('')
           setNotes('')
+          setAllergies('')
           setSubmitted(false)
           setOrderId(undefined)
           setWhatsappUrl('')
@@ -330,10 +335,12 @@ export default function OrderPage() {
               deliveryAddress={deliveryAddress}
               phone={phone}
               notes={notes}
+              allergies={allergies}
               errors={errors}
               onAddressChange={setDeliveryAddress}
               onPhoneChange={setPhone}
               onNotesChange={setNotes}
+              onAllergiesChange={setAllergies}
             />
           </div>
 

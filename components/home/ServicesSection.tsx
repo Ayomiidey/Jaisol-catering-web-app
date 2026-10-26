@@ -27,13 +27,13 @@ const services = [
     action: 'Plan your event',
   },
   {
-    title: 'Custom Cakes',
+    title: 'Baking & Pastries',
     description:
-      'Beautiful cakes designed for birthdays, celebrations and special moments.',
-    image: '/images/wedding-cake.png',
+      'Freshly prepared pastries, baked treats and sweet favourites.',
+    image: '/images/puff-puff.png',
     href: '/explore',
     icon: CakeSlice,
-    action: 'Get a quote',
+    action: 'Explore baking & pastries',
   },
 ]
 

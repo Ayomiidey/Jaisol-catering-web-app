@@ -24,7 +24,7 @@ export function Home() {
     queryFn: () => getMenuItems(),
   })
 
-  const categories = ['All', 'Mains', 'Starters', 'Pastries', 'Cakes']
+  const categories = ['All', 'Mains', 'Starters', 'Pastries', 'Meat']
   const featuredItems = menuItems.slice(0, 3)
   const popularItems = menuItems.slice(0, 3)
 
@@ -91,7 +91,7 @@ export function Home() {
           </Link>
           <Link href="/explore" className="flex flex-col items-center gap-2 p-4 rounded-lg bg-secondary hover:bg-secondary/80 transition">
             <Cake className="w-6 h-6 text-orange-500" />
-            <span className="text-xs font-medium text-center">Custom cakes<br/>Consultation</span>
+            <span className="text-xs font-medium text-center">Baking & pastries<br/>Browse menu</span>
           </Link>
         </div>
       </section>

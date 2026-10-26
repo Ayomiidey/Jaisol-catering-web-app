@@ -43,7 +43,7 @@ export function OrderCard({ order }: OrderCardProps) {
         notes: item.notes ?? undefined,
       }))
     }
-    dispatch(setDeliveryInfo({ deliveryAddress: order.deliveryAddress ?? undefined, phone: order.phone ?? undefined, specialNotes: '' }))
+    dispatch(setDeliveryInfo({ deliveryAddress: order.deliveryAddress ?? undefined, phone: order.phone ?? undefined, specialNotes: '', foodAllergies: order.allergies ?? '' }))
     const skipped = order.items.length - availableItems.length
     setMessage(skipped ? `${skipped} item${skipped === 1 ? '' : 's'} unavailable. Available dishes are in your cart.` : 'Your previous items were added at today’s prices.')
     router.push(`/cart?reorder=${skipped ? 'partial' : 'complete'}`)
@@ -71,6 +71,7 @@ export function OrderCard({ order }: OrderCardProps) {
       {!availableCount && <p className="mt-3 text-sm text-muted-foreground">All items in this order are currently unavailable. Browse the menu for alternatives.</p>}
 
       {(order.deliveryAddress || order.phone) && <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">{order.deliveryAddress && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{order.deliveryAddress}</span>}{order.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{order.phone}</span>}</div>}
+      {order.allergies && <p className="mt-3 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm"><span className="font-semibold text-destructive">Allergy information: </span>{order.allergies}</p>}
       {message && <p role="status" className="mt-3 flex items-start gap-2 rounded-xl bg-primary/10 p-3 text-sm"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />{message}</p>}
     </article>
   )
