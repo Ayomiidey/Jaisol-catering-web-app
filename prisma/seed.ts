@@ -23,15 +23,10 @@ async function main() {
     },
   })
 
-  // Clear existing data
-  await prisma.orderItem.deleteMany()
-  await prisma.order.deleteMany()
-  await prisma.cateringBooking.deleteMany()
-  await prisma.menuItem.deleteMany()
-  await prisma.cateringPackage.deleteMany()
-
-  // Create menu items
-  const menuItems = await Promise.all([
+  // Seed demo menu data only for a new database; never overwrite customer data.
+  const existingMenuItemCount = await prisma.menuItem.count()
+  if (existingMenuItemCount === 0) {
+    await Promise.all([
     prisma.menuItem.create({
       data: {
         name: 'Jollof Rice',
@@ -112,10 +107,13 @@ async function main() {
         isAvailable: true,
       },
     }),
-  ])
+    ])
+  }
 
-  // Create catering packages
-  await Promise.all([
+  // Seed demo packages only when the database has none.
+  const existingPackageCount = await prisma.cateringPackage.count()
+  if (existingPackageCount === 0) {
+    await Promise.all([
     prisma.cateringPackage.create({
       data: {
         name: 'Basic Package',
@@ -143,7 +141,8 @@ async function main() {
         includes: JSON.stringify(['Premium Mains', 'Multiple Starters', 'Cake', 'Full Beverages', 'Server Staff', 'Setup & Cleanup']),
       },
     }),
-  ])
+    ])
+  }
 
   console.log('Database seeded successfully!')
 }
