@@ -12,7 +12,7 @@ const statusColors: Record<string, string> = {
   awaiting_whatsapp_confirmation: 'bg-yellow-500/20 text-yellow-400',
   pending: 'bg-yellow-500/20 text-yellow-400',
   confirmed: 'bg-blue-500/20 text-blue-400',
-  making: 'bg-orange-500/20 text-orange-400',
+  making: 'bg-primary/20 text-primary',
   ready: 'bg-purple-500/20 text-purple-400',
   delivered: 'bg-green-500/20 text-green-400',
   cancelled: 'bg-red-500/20 text-red-400',
@@ -116,7 +116,7 @@ function OrdersContent() {
               key={s || 'all'}
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition capitalize ${
-                statusFilter === s ? 'bg-orange-500 text-white' : 'bg-secondary hover:bg-secondary/80'
+                statusFilter === s ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-secondary/80'
               }`}
             >
               {s ? statusLabel(s) : 'All'}
@@ -126,7 +126,7 @@ function OrdersContent() {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <RefreshCw className="w-6 h-6 animate-spin text-orange-500" />
+            <RefreshCw className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">No orders found</div>
@@ -148,7 +148,7 @@ function OrdersContent() {
                     </p>
                   </div>
                   <div>
-                    <p className="font-semibold text-orange-500">£{order.totalPrice.toFixed(2)}</p>
+                    <p className="font-semibold text-primary">£{order.totalPrice.toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                     </p>
@@ -206,8 +206,8 @@ function OrdersContent() {
                             onClick={() => updateStatus.mutate({ id: order.id, status: s })}
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition disabled:opacity-50 ${
                               order.status === s
-                                ? 'bg-orange-500 text-white'
-                                : 'bg-secondary hover:bg-orange-500/20 border border-border'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-secondary hover:bg-primary/20 border border-border'
                             }`}
                           >
                             {statusLabel(s)}

@@ -160,7 +160,7 @@ function MenuContent() {
       description: item.description ?? '',
       price: String(item.price),
       category: item.category,
-      imageUrl: item.imageUrl ?? '',
+      imageUrl: '',
       images: item.images ?? (item.imageUrl ? [item.imageUrl] : []),
       isAvailable: item.isAvailable,
     })
@@ -197,15 +197,13 @@ function MenuContent() {
       setFormError('')
       setIsUploading(true)
       const uploadedImages = await Promise.all(imageFiles.map(uploadImage))
-      const imageUrls = Array.from(new Set([
-        ...form.images,
-        ...uploadedImages,
-        ...(imageSource === 'url' && form.imageUrl.trim() ? [form.imageUrl.trim()] : []),
-      ]))
-      const isNewUrlImage = imageSource === 'url' && form.imageUrl.trim() && !form.images.includes(form.imageUrl.trim())
-      const imageUrl = isNewUrlImage
-        ? form.imageUrl.trim()
-        : imageUrls[mainImageIndex] ?? imageUrls[0] ?? ''
+      const imageUrls = Array.from(new Set([...form.images, ...uploadedImages]))
+      const selectedMain = mainImageIndex < form.images.length
+        ? form.images[mainImageIndex]
+        : uploadedImages[mainImageIndex - form.images.length]
+      const imageUrl = selectedMain && imageUrls.includes(selectedMain)
+        ? selectedMain
+        : imageUrls[0] ?? ''
 
       if (modal === 'add') {
         createItem.mutate({ ...form, imageUrl, images: imageUrls, price: priceNum })
@@ -245,7 +243,7 @@ function MenuContent() {
             <button onClick={() => refetch()} className="p-2 hover:bg-secondary rounded-lg transition">
               <RefreshCw className="w-5 h-5" />
             </button>
-            <Button onClick={openAdd} className="bg-orange-500 hover:bg-orange-600 gap-2">
+            <Button onClick={openAdd} className="bg-primary hover:opacity-90 gap-2">
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Add Item</span>
             </Button>
@@ -254,13 +252,13 @@ function MenuContent() {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <RefreshCw className="w-6 h-6 animate-spin text-orange-500" />
+            <RefreshCw className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-12">
             <ChefHat className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
             <p className="text-muted-foreground mb-4">No menu items yet</p>
-            <Button onClick={openAdd} className="bg-orange-500 hover:bg-orange-600">
+            <Button onClick={openAdd} className="bg-primary hover:opacity-90">
               Add First Item
             </Button>
           </div>
@@ -296,7 +294,7 @@ function MenuContent() {
                   </div>
                 </div>
                 <div className="hidden md:block">
-                  <span className="px-2 py-1 rounded-full bg-orange-500/10 text-orange-500 text-xs font-medium">
+                  <span className="px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
                     {item.category}
                   </span>
                 </div>
@@ -316,7 +314,7 @@ function MenuContent() {
                 <div className="flex gap-2 justify-end md:justify-start">
                   <button
                     onClick={() => openEdit(item)}
-                    className="p-2 hover:bg-orange-500/20 rounded-lg transition text-orange-500"
+                    className="p-2 hover:bg-primary/20 rounded-lg transition text-primary"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
@@ -367,7 +365,7 @@ function MenuContent() {
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   placeholder="Short description..."
                   rows={2}
-                  className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:border-orange-500 resize-none"
+                  className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:border-primary resize-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -390,7 +388,7 @@ function MenuContent() {
                     id="category"
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:border-orange-500"
+                    className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:border-primary"
                   >
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -417,15 +415,25 @@ function MenuContent() {
                   </button>
                 </div>
                 {imageSource === 'url' ? (
-                  <Input
-                    id="imageUrl"
-                    value={form.imageUrl}
-                    onChange={(e) => {
-                      const imageUrl = e.target.value
-                      setForm({ ...form, imageUrl })
-                    }}
-                    placeholder="https://... or /images/dish.png (this becomes the main image)"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="imageUrl"
+                      value={form.imageUrl}
+                      onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                      placeholder="Paste an image URL, then choose Add image"
+                    />
+                    <Button type="button" variant="outline" disabled={!form.imageUrl.trim()} onClick={() => {
+                      const url = form.imageUrl.trim()
+                      if (!url || form.images.includes(url)) return
+                      const wasMainFile = mainImageIndex >= form.images.length
+                      const mainFileOffset = mainImageIndex - form.images.length
+                      const nextImages = [...form.images, url]
+                      setForm((current) => ({ ...current, images: nextImages, imageUrl: '' }))
+                      setImagePreviews([...nextImages, ...imageFiles.map((file) => URL.createObjectURL(file))])
+                      if (imagePreviews.length === 0) setMainImageIndex(0)
+                      else if (wasMainFile) setMainImageIndex(nextImages.length + mainFileOffset)
+                    }}>Add image</Button>
+                  </div>
                 ) : (
                   <div>
                     <Input
@@ -434,33 +442,35 @@ function MenuContent() {
                       multiple
                       accept="image/jpeg,image/png,image/webp,image/gif"
                       onChange={(e) => {
-                        const files = Array.from(e.target.files ?? [])
+                        const selected = Array.from(e.target.files ?? [])
+                        const files = [...imageFiles, ...selected.filter((file) => !imageFiles.some((existing) => existing.name === file.name && existing.size === file.size && existing.lastModified === file.lastModified))]
                         setImageFiles(files)
-                        setImagePreviews([
-                          ...form.images,
-                          ...files.map((file) => URL.createObjectURL(file)),
-                        ])
-                        setMainImageIndex(0)
+                        setImagePreviews([...form.images, ...files.map((file) => URL.createObjectURL(file))])
+                        e.target.value = ''
                       }}
                     />
-                    <p className="mt-1 text-xs text-muted-foreground">Select one or more JPG, PNG, WebP, or GIF files. Maximum 4 MB each.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Select one or more JPG, PNG, WebP, or GIF files. You can add more than once; each file can be up to 4 MB.</p>
                   </div>
                 )}
                 {imagePreviews.length > 0 && (
                   <div className="grid grid-cols-3 gap-2">
                     {imagePreviews.map((image, index) => (
-                      <button
+                      <div
                         key={`${image}-${index}`}
-                        type="button"
-                        onClick={() => setMainImageIndex(index)}
-                        className={`relative aspect-square overflow-hidden rounded-lg border-2 transition ${mainImageIndex === index ? 'border-orange-500' : 'border-border'}`}
-                        title="Set as main image"
+                        className={`group relative aspect-square overflow-hidden rounded-lg border-2 transition ${mainImageIndex === index ? 'border-primary' : 'border-border'}`}
                       >
-                        <img src={image} alt={`Product image ${index + 1}`} className="h-full w-full object-cover" />
-                        {mainImageIndex === index && (
-                          <span className="absolute inset-x-1 bottom-1 rounded bg-orange-500 px-1 py-0.5 text-[10px] font-bold text-white">Main</span>
-                        )}
-                      </button>
+                        <img src={image} alt={`Product image ${index + 1}`} className="h-full w-full cursor-pointer object-cover" onClick={() => setMainImageIndex(index)} />
+                        <button type="button" onClick={() => setMainImageIndex(index)} className="absolute inset-x-1 bottom-1 rounded bg-background/90 px-1 py-1 text-[10px] font-bold text-foreground">{mainImageIndex === index ? 'Main image' : 'Set as main'}</button>
+                        <button type="button" aria-label={`Remove image ${index + 1}`} onClick={() => {
+                          if (index < form.images.length) {
+                            setForm((current) => ({ ...current, images: current.images.filter((_, imageIndex) => imageIndex !== index) }))
+                          } else {
+                            setImageFiles((current) => current.filter((_, fileIndex) => fileIndex !== index - form.images.length))
+                          }
+                          setImagePreviews((current) => current.filter((_, imageIndex) => imageIndex !== index))
+                          setMainImageIndex((current) => current === index ? Math.max(0, index - 1) : current > index ? current - 1 : current)
+                        }} className="absolute right-1 top-1 rounded-full bg-background/90 p-1 text-destructive shadow"><X className="h-3 w-3" /></button>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -472,7 +482,7 @@ function MenuContent() {
                       type="checkbox"
                       checked={form.isAvailable}
                       onChange={(e) => setForm({ ...form, isAvailable: e.target.checked })}
-                      className="w-4 h-4 accent-orange-500"
+                      className="w-4 h-4 accent-primary"
                     />
                     <span className="text-sm font-medium">Available for ordering</span>
                   </label>
@@ -491,7 +501,7 @@ function MenuContent() {
               <Button
                 onClick={handleSubmit}
                 disabled={createItem.isPending || updateItem.isPending || isUploading}
-                className="flex-1 bg-orange-500 hover:bg-orange-600"
+                className="flex-1 bg-primary hover:opacity-90"
               >
                 {isUploading ? 'Uploading image...' : createItem.isPending || updateItem.isPending ? 'Saving...' : modal === 'add' ? 'Add Item' : 'Save Changes'}
               </Button>

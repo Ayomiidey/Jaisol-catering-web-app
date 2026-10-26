@@ -9,7 +9,7 @@ export function AccountQuickActions() {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <Link
-        href="/menu"
+        href="/explore"
         className="flex h-14 items-center justify-between rounded-2xl bg-primary px-5 font-semibold text-primary-foreground transition-opacity hover:opacity-90"
       >
         <span className="flex items-center gap-3">

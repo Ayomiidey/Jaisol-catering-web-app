@@ -72,6 +72,7 @@ const authOptions = NextAuth({
           where: { id: user.id },
         })
         token.isAdmin = (user as any).isAdmin ?? dbUser?.isAdmin ?? false
+        token.role = token.isAdmin ? "admin" : "user"
         token.name = dbUser?.name
         token.email = dbUser?.email
         if ((user as any).isAdmin) {
@@ -85,6 +86,7 @@ const authOptions = NextAuth({
       if (session.user) {
         ;(session.user as any).id = (token.id as string) ?? token.sub
         ;(session.user as any).isAdmin = token.isAdmin
+        ;(session.user as any).role = token.isAdmin ? "admin" : "user"
         session.user.name = token.name as string
         session.user.email = token.email as string
       }

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
+import { getSession, signIn } from "next-auth/react"
 import Link from "next/link"
 import {
   ArrowLeft,
@@ -38,7 +38,7 @@ export default function SignInPage() {
           "callbackUrl"
         )
 
-      const callbackUrl =
+      const requestedDestination =
         requestedCallback?.startsWith("/") &&
         !requestedCallback.startsWith("//")
           ? requestedCallback
@@ -48,7 +48,7 @@ export default function SignInPage() {
         email,
         password,
         redirect: false,
-        callbackUrl,
+        callbackUrl: requestedDestination,
       })
 
       if (result?.error) {
@@ -56,7 +56,13 @@ export default function SignInPage() {
         return
       }
 
-      router.replace(callbackUrl)
+      const session = await getSession()
+      const isAdmin = Boolean(session?.user && (session.user as { isAdmin?: boolean }).isAdmin)
+      const destination = isAdmin
+        ? requestedDestination.startsWith("/admin") ? requestedDestination : "/admin"
+        : requestedDestination.startsWith("/admin") ? "/" : requestedDestination
+
+      router.replace(destination)
       router.refresh()
     } catch (error) {
       console.error(error)

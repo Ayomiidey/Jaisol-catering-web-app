@@ -13,9 +13,22 @@ export async function GET(req: NextRequest) {
 
     const orders = await db.order.findMany({
       where: { userId },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        totalPrice: true,
+        createdAt: true,
+        deliveryAddress: true,
+        phone: true,
+        notes: true,
         items: {
-          select: { menuItem: { select: { name: true } } },
+          select: {
+            menuItemId: true,
+            quantity: true,
+            priceAtPurchase: true,
+            notes: true,
+            menuItem: { select: { id: true, name: true, price: true, imageUrl: true, isAvailable: true } },
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -23,19 +36,15 @@ export async function GET(req: NextRequest) {
     })
 
     const formattedOrders = orders.map((order) => {
-      const itemNames = order.items.map((item) => item.menuItem.name)
-      const createdDate = new Date(order.createdAt)
-      const dateStr = createdDate.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'short',
-      })
-
       return {
         id: order.id,
-        items: itemNames,
-        date: dateStr,
+        items: order.items,
+        date: order.createdAt.toISOString(),
         amount: order.totalPrice,
-        status: order.status.charAt(0).toUpperCase() + order.status.slice(1),
+        status: order.status,
+        deliveryAddress: order.deliveryAddress,
+        phone: order.phone,
+        notes: order.notes,
       }
     })
 

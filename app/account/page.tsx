@@ -36,6 +36,8 @@ export default function AccountPage() {
   const {
     data: orders = [],
     isLoading: ordersLoading,
+    isError: ordersError,
+    refetch: refetchOrders,
   } = useUserOrders(userId)
 
   const {
@@ -87,7 +89,7 @@ export default function AccountPage() {
     )
   }
 
-  const isAdmin = session.user.role === "admin"
+  const isAdmin = session.user.isAdmin
 
   return (
     <main className="min-h-screen bg-background">
@@ -115,6 +117,8 @@ export default function AccountPage() {
             <OrderList
               orders={orders}
               isLoading={ordersLoading}
+              isError={ordersError}
+              onRetry={() => refetchOrders()}
             />
           </AccountSection>
 

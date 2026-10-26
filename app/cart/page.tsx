@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -51,6 +51,18 @@ export default function OrderPage() {
   const [submitted, setSubmitted] = useState(false)
   const [orderId, setOrderId] = useState<string | undefined>()
   const [whatsappUrl, setWhatsappUrl] = useState('')
+  const [reorderMessage, setReorderMessage] = useState('')
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const reorder = url.searchParams.get('reorder')
+    if (reorder === 'partial') setReorderMessage('Some dishes from your previous order are unavailable. The available items have been added at today’s prices.')
+    if (reorder === 'complete') setReorderMessage('Your previous items have been added at today’s prices. Review your cart before checkout.')
+    if (reorder) {
+      url.searchParams.delete('reorder')
+      window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`)
+    }
+  }, [])
 
   /*
    * --------------------------------
@@ -301,6 +313,8 @@ export default function OrderPage() {
     <main className="min-h-screen bg-background px-4 py-8 pb-32">
       <div className="mx-auto max-w-6xl">
         <OrderHeader />
+
+        {reorderMessage && <p role="status" className="mb-5 rounded-xl border border-primary/20 bg-primary/10 p-4 text-sm">{reorderMessage}</p>}
 
         <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
           {/* LEFT COLUMN */}

@@ -46,13 +46,13 @@ function AnalyticsContent() {
             </div>
           </div>
           <button onClick={() => refetch()} className="p-2 hover:bg-secondary rounded-lg transition">
-            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin text-orange-500' : ''}`} />
+            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin text-primary' : ''}`} />
           </button>
         </div>
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <RefreshCw className="w-6 h-6 animate-spin text-orange-500" />
+            <RefreshCw className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : data ? (
           <>
@@ -60,10 +60,10 @@ function AnalyticsContent() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
               <div className="p-4 rounded-lg bg-secondary border border-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-4 h-4 text-orange-500" />
+                  <DollarSign className="w-4 h-4 text-primary" />
                   <p className="text-muted-foreground text-xs">Total Revenue</p>
                 </div>
-                <p className="text-2xl font-bold text-orange-500">£{data.totalRevenue.toFixed(0)}</p>
+                <p className="text-2xl font-bold text-primary">£{data.totalRevenue.toFixed(0)}</p>
                 {data.monthlyRevenue > 0 && (
                   <p className="text-xs text-muted-foreground mt-1">£{data.monthlyRevenue.toFixed(0)} this month</p>
                 )}
@@ -127,7 +127,7 @@ function AnalyticsContent() {
                           <p className="text-sm font-medium truncate">{item.name}</p>
                           <div className="mt-1 h-1.5 bg-border rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-orange-500 rounded-full transition-all"
+                              className="h-full bg-primary rounded-full transition-all"
                               style={{ width: `${(item.count / maxItemCount) * 100}%` }}
                             />
                           </div>
