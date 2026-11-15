@@ -33,6 +33,7 @@ export async function createCateringBooking(data: {
   eventType: string
   guestCount: number
   date: string
+  eventTime?: string
   location: string
   phone: string
   dietaryNeeds?: string[]
@@ -52,9 +53,9 @@ export async function createCateringBooking(data: {
     if (
       !Number.isInteger(data.guestCount) ||
       data.guestCount < 20 ||
-      data.guestCount > 500
+      data.guestCount > 1000
     ) {
-      throw new Error('Guest count must be between 20 and 500')
+      throw new Error('Guest count must be between 20 and 1,000')
     }
 
     if (!data.date) {
@@ -67,6 +68,14 @@ export async function createCateringBooking(data: {
 
     if (!data.phone?.trim()) {
       throw new Error('Phone number is required')
+    }
+
+    if (data.phone.trim().length > 20) {
+      throw new Error('Phone number must be 20 characters or fewer')
+    }
+
+    if (data.notes && data.notes.length > 1000) {
+      throw new Error('Additional notes must be 1,000 characters or fewer')
     }
 
     const eventDate = new Date(data.date)
@@ -88,6 +97,8 @@ export async function createCateringBooking(data: {
         guestCount: data.guestCount,
 
         date: eventDate,
+
+        eventTime: data.eventTime?.trim() || null,
 
         location: data.location.trim(),
 

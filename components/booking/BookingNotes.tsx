@@ -12,7 +12,7 @@ export function BookingNotes({
   onChange,
 }: BookingNotesProps) {
   return (
-    <div className="space-y-2">
+    <section className="min-w-0 space-y-3 rounded-2xl border border-border bg-card p-5 md:p-6">
       <div>
         <label
           htmlFor="notes"
@@ -34,7 +34,12 @@ export function BookingNotes({
         onChange={(event) => onChange(event.target.value)}
         placeholder="Anything else you'd like us to know?"
         rows={5}
+        maxLength={1000}
+        className="min-h-32 w-full resize-y"
       />
-    </div>
+      <p className="text-right text-xs text-muted-foreground" aria-live="polite">
+        {value.length}/1,000 characters
+      </p>
+    </section>
   )
 }

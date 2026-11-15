@@ -24,7 +24,7 @@ export function GuestCountSelector({
           </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Catering is currently available for 20–500 guests.
+            Catering is currently available for 20–1,000 guests.
           </p>
         </div>
 
@@ -40,7 +40,7 @@ export function GuestCountSelector({
       <input
         type="range"
         min="20"
-        max="500"
+        max="1000"
         step="5"
         value={value}
         onChange={(event) =>
@@ -51,7 +51,7 @@ export function GuestCountSelector({
 
       <div className="mt-2 flex justify-between text-xs text-muted-foreground">
         <span>20 guests</span>
-        <span>500 guests</span>
+        <span>1,000 guests</span>
       </div>
 
       {error && (

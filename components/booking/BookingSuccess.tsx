@@ -3,10 +3,12 @@ import { CheckCircle2, MessageCircle } from 'lucide-react'
 
 interface BookingSuccessProps {
   bookingId: string
+  whatsappUrl?: string
 }
 
 export function BookingSuccess({
   bookingId,
+  whatsappUrl,
 }: BookingSuccessProps) {
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
@@ -24,9 +26,10 @@ export function BookingSuccess({
         </h1>
 
         <p className="mt-4 text-muted-foreground">
-          Your booking has been added to our system. Continue
-          on WhatsApp to discuss your menu, package, allergies,
-          final requirements and pricing.
+          Your booking has been added to our system.
+          {whatsappUrl
+            ? ' Continue on WhatsApp to discuss your menu, package, allergies, final requirements and pricing.'
+            : ' Our team will use the contact details you provided to follow up.'}
         </p>
 
         <div className="mt-6 rounded-xl bg-secondary p-4">
@@ -40,19 +43,22 @@ export function BookingSuccess({
         </div>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          {whatsappUrl && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Continue on WhatsApp
+            </a>
+          )}
           <Link
             href="/"
             className="flex-1 rounded-xl border border-border px-5 py-3 text-sm font-semibold transition hover:bg-secondary"
           >
             Back to Home
-          </Link>
-
-          <Link
-            href="/book"
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
-          >
-            <MessageCircle className="h-4 w-4" />
-            New Request
           </Link>
         </div>
       </div>

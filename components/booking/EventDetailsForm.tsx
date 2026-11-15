@@ -15,6 +15,7 @@ interface EventDetailsFormProps {
   onLocationChange: (value: string) => void
   errors: {
     date?: string
+    time?: string
     location?: string
   }
 }
@@ -44,24 +45,24 @@ export function EventDetailsForm({
         </p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="space-y-2">
+      <div className="grid min-w-0 gap-5 sm:grid-cols-2">
+        <div className="min-w-0 space-y-2">
           <Label htmlFor="event-date">
             Event date <span className="text-destructive">*</span>
           </Label>
 
-          <div className="relative">
-            <CalendarDays className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative min-w-0">
+            <CalendarDays aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
             <Input
               id="event-date"
               type="date"
               value={date}
-              min={new Date().toISOString().split('T')[0]}
+              min={new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10)}
               onChange={(event) =>
                 onDateChange(event.target.value)
               }
-              className="pl-10"
+              className="w-full min-w-0 pl-10"
             />
           </div>
 
@@ -72,13 +73,13 @@ export function EventDetailsForm({
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
           <Label htmlFor="event-time">
             Event time <span className="text-destructive">*</span>
           </Label>
 
-          <div className="relative">
-            <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative min-w-0">
+            <Clock aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
             <Input
               id="event-time"
@@ -87,18 +88,21 @@ export function EventDetailsForm({
               onChange={(event) =>
                 onTimeChange(event.target.value)
               }
-              className="pl-10"
+              className="w-full min-w-0 pl-10"
             />
           </div>
+          {errors.time && (
+            <p className="text-sm text-destructive">{errors.time}</p>
+          )}
         </div>
 
-        <div className="space-y-2 sm:col-span-2">
+        <div className="min-w-0 space-y-2 sm:col-span-2">
           <Label htmlFor="event-location">
             Event location <span className="text-destructive">*</span>
           </Label>
 
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative min-w-0">
+            <MapPin aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
             <Input
               id="event-location"
@@ -108,7 +112,8 @@ export function EventDetailsForm({
                 onLocationChange(event.target.value)
               }
               placeholder="Venue name, street, city"
-              className="pl-10"
+              maxLength={255}
+              className="w-full min-w-0 pl-10"
             />
           </div>
 

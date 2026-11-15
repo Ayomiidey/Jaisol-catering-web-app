@@ -40,6 +40,7 @@ export function Book() {
 
   const [submitted, setSubmitted] = useState(false)
   const [bookingId, setBookingId] = useState('')
+  const [whatsAppUrl, setWhatsAppUrl] = useState('')
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -79,10 +80,10 @@ export function Book() {
     if (
       !Number.isInteger(formData.guestCount) ||
       formData.guestCount < 20 ||
-      formData.guestCount > 500
+      formData.guestCount > 1000
     ) {
       nextErrors.guestCount =
-        'Guest count must be between 20 and 500.'
+        'Guest count must be between 20 and 1,000.'
     }
 
     if (!formData.date) {
@@ -184,14 +185,6 @@ export function Book() {
       return
     }
 
-    if (!WHATSAPP_NUMBER) {
-      setSubmitError(
-        'WhatsApp is not configured. Please contact the administrator.'
-      )
-
-      return
-    }
-
     try {
       setIsSubmitting(true)
 
@@ -199,6 +192,7 @@ export function Book() {
         eventType: formData.eventType,
         guestCount: formData.guestCount,
         date: combinedDateTime,
+        eventTime: formData.time,
         location: formData.location,
         phone: formData.phone,
         dietaryNeeds: formData.dietaryNeeds,
@@ -209,15 +203,12 @@ export function Book() {
 
       const message = buildWhatsAppMessage(booking.id)
 
-      const whatsappUrl =
-        `https://wa.me/${WHATSAPP_NUMBER}` +
-        `?text=${encodeURIComponent(message)}`
-
-      window.open(
-        whatsappUrl,
-        '_blank',
-        'noopener,noreferrer'
-      )
+      const whatsappNumber = WHATSAPP_NUMBER.replace(/\D/g, '')
+      if (whatsappNumber) {
+        setWhatsAppUrl(
+          `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
+        )
+      }
 
       setSubmitted(true)
     } catch (error) {
@@ -234,7 +225,7 @@ export function Book() {
   }
 
   if (submitted) {
-    return <BookingSuccess bookingId={bookingId} />
+    return <BookingSuccess bookingId={bookingId} whatsappUrl={whatsAppUrl} />
   }
 
   return (
@@ -266,8 +257,15 @@ export function Book() {
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-5">
+        <form
+          id="booking-form"
+          onSubmit={(event) => {
+            event.preventDefault()
+            void handleSubmit()
+          }}
+          className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]"
+        >
+          <div className="min-w-0 space-y-5">
             <EventTypeSelector
               value={formData.eventType}
               onChange={(value) => {
@@ -339,6 +337,7 @@ export function Book() {
               }}
               errors={{
                 date: errors.date,
+                time: errors.time,
                 location: errors.location,
               }}
             />
@@ -410,6 +409,7 @@ export function Book() {
                   <Input
                     id="booking-phone"
                     type="tel"
+                    maxLength={20}
                     value={formData.phone}
                     onChange={(event) => {
                       setFormData((current) => ({
@@ -446,10 +446,7 @@ export function Book() {
             </div>
 
             <div className="hidden lg:block">
-              <BookingSubmit
-                isSubmitting={isSubmitting}
-                onClick={handleSubmit}
-              />
+              <BookingSubmit isSubmitting={isSubmitting} />
             </div>
           </div>
 
@@ -463,16 +460,15 @@ export function Book() {
               dietaryNeeds={formData.dietaryNeeds}
             />
           </div>
-        </div>
-      </div>
-
+        </form>
       <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 p-3 backdrop-blur lg:hidden">
         <div className="mx-auto max-w-7xl">
           <BookingSubmit
             isSubmitting={isSubmitting}
-            onClick={handleSubmit}
+            form="booking-form"
           />
         </div>
+      </div>
       </div>
     </main>
   )
