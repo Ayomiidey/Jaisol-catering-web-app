@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
+import { getLagosDateString, isOrderServiceDate } from '@/lib/order-schedule'
 
 const DELIVERY_FEE = 2.5
 
@@ -16,7 +17,23 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { items, deliveryAddress, phone, notes, allergies } = await req.json()
+    const { items, deliveryAddress, phone, notes, allergies, deliveryDate: requestedDeliveryDate } = await req.json()
+
+    const today = getLagosDateString()
+    let deliveryDate = today
+    if (!isOrderServiceDate(today)) {
+      if (
+        typeof requestedDeliveryDate !== 'string' ||
+        requestedDeliveryDate < today ||
+        !isOrderServiceDate(requestedDeliveryDate)
+      ) {
+        return NextResponse.json(
+          { error: 'Please choose an upcoming Thursday, Friday, or Saturday for delivery.' },
+          { status: 400 }
+        )
+      }
+      deliveryDate = requestedDeliveryDate
+    }
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -83,6 +100,7 @@ export async function POST(req: NextRequest) {
         userId,
         status: 'awaiting_whatsapp_confirmation',
         totalPrice: subtotal + DELIVERY_FEE,
+        deliveryDate: new Date(`${deliveryDate}T00:00:00.000Z`),
         deliveryAddress: deliveryAddress.trim(),
         phone: phone.trim(),
         notes: typeof notes === 'string' ? notes.trim() : '',
@@ -101,6 +119,7 @@ export async function POST(req: NextRequest) {
         status: true,
         totalPrice: true,
         createdAt: true,
+          deliveryDate: true,
         items: {
           select: {
             quantity: true,
@@ -119,6 +138,7 @@ export async function POST(req: NextRequest) {
           status: order.status,
           totalPrice: order.totalPrice,
           createdAt: order.createdAt,
+          deliveryDate: order.deliveryDate?.toISOString().slice(0, 10),
           items: order.items,
         },
       },

@@ -2,15 +2,18 @@
 
 import Link from 'next/link'
 import { CheckCircle2, ExternalLink, ShoppingBag } from 'lucide-react'
+import { formatOrderDate } from '@/lib/order-schedule'
 
 interface OrderSuccessProps {
   orderId?: string
+  deliveryDate: string
   whatsappUrl: string
   onMessageSent: () => void
 }
 
 export function OrderSuccess({
   orderId,
+  deliveryDate,
   whatsappUrl,
   onMessageSent,
 }: OrderSuccessProps) {
@@ -27,6 +30,10 @@ export function OrderSuccess({
           Your order details are ready in WhatsApp. Send the message to Jaisol
           Catering to complete your request. We'll reply to confirm availability,
           delivery, and payment.
+        </p>
+
+        <p className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm font-semibold text-primary">
+          Scheduled for {formatOrderDate(deliveryDate)}
         </p>
 
         {orderId && (

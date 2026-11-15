@@ -92,6 +92,7 @@ model Order {
   userId          String
   status          String      @default("pending")
   totalPrice      Float
+  deliveryDate    DateTime?   @db.Date
   deliveryAddress String?
   phone           String?     @db.VarChar(20)
   notes           String?

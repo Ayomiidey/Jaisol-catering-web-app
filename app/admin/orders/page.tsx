@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, RefreshCw, ChevronDown } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { formatOrderDate } from '@/lib/order-schedule'
 
 const ORDER_STATUSES = ['awaiting_whatsapp_confirmation', 'pending', 'confirmed', 'making', 'ready', 'delivered', 'cancelled']
 
@@ -39,6 +40,7 @@ interface Order {
   notes?: string
   allergies?: string | null
   createdAt: string
+  deliveryDate: string | null
   user: { name: string; email: string }
   items: OrderItem[]
 }
@@ -151,8 +153,9 @@ function OrdersContent() {
                   <div>
                     <p className="font-semibold text-primary">£{order.totalPrice.toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                      Placed {new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                     </p>
+                    {order.deliveryDate && <p className="mt-1 text-xs font-semibold text-primary">Delivery {formatOrderDate(order.deliveryDate, { weekday: 'short', day: 'numeric', month: 'short' })}</p>}
                   </div>
                   <div>
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[order.status] ?? ''}`}>
@@ -174,6 +177,10 @@ function OrdersContent() {
                       <div>
                         <p className="text-muted-foreground mb-1">Phone</p>
                         <p>{order.phone}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground mb-1">Scheduled delivery</p>
+                        <p className="font-semibold text-primary">{order.deliveryDate ? formatOrderDate(order.deliveryDate) : 'Not set (older order)'}</p>
                       </div>
                       <div className="md:col-span-2">
                         <p className="text-muted-foreground mb-1">Delivery Address</p>

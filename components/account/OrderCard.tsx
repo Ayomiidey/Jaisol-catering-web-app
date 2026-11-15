@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { CalendarDays, CheckCircle2, MapPin, Phone, Repeat2, ShoppingBag } from 'lucide-react'
 import { Order } from '@/types/account'
 import { addToCart, setDeliveryInfo } from '@/lib/slices/cart-slice'
+import { formatOrderDate } from '@/lib/order-schedule'
 
 interface OrderCardProps { order: Order }
 
@@ -54,7 +55,7 @@ export function OrderCard({ order }: OrderCardProps) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="rounded-xl bg-primary/10 p-3 text-primary"><ShoppingBag className="h-5 w-5" /></div>
-          <div><p className="font-semibold">Order #{order.id.slice(-8).toUpperCase()}</p><p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground"><CalendarDays className="h-3.5 w-3.5" />{new Date(order.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p></div>
+          <div><p className="font-semibold">Order #{order.id.slice(-8).toUpperCase()}</p><p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground"><CalendarDays className="h-3.5 w-3.5" />Placed {new Date(order.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>{order.deliveryDate && <p className="mt-1 text-sm font-medium text-primary">Delivery: {formatOrderDate(order.deliveryDate)}</p>}</div>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClasses(order.status)}`}>{displayStatus}</span>
       </div>

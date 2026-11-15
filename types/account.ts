@@ -14,6 +14,7 @@ export interface Order {
     }
   }>
   date: string
+  deliveryDate?: string | null
   amount: number
   status: string
   deliveryAddress: string | null

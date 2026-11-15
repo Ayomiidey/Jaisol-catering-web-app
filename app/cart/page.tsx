@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -20,12 +20,14 @@ import { CartItems } from '@/components/order/CartItems'
 import { DeliveryForm } from '@/components/order/DeliveryForm'
 import { OrderSummary } from '@/components/order/OrderSummary'
 import { OrderSuccess } from '@/components/order/OrderSuccess'
+import { formatOrderDate, getLagosDateString, getUpcomingOrderDates, isOrderServiceDate } from '@/lib/order-schedule'
 
 const DELIVERY_FEE = 2.5
 
 interface FormErrors {
   address?: string
   phone?: string
+  deliveryDate?: string
   cart?: string
 }
 
@@ -41,6 +43,8 @@ export default function OrderPage() {
   )
 
   const [phone, setPhone] = useState(cart.phone || '')
+  const [today, setToday] = useState(() => getLagosDateString())
+  const [deliveryDate, setDeliveryDate] = useState('')
 
   const [notes, setNotes] = useState(
     cart.specialNotes || ''
@@ -51,8 +55,22 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [orderId, setOrderId] = useState<string | undefined>()
+  const [confirmedDeliveryDate, setConfirmedDeliveryDate] = useState('')
   const [whatsappUrl, setWhatsappUrl] = useState('')
   const [reorderMessage, setReorderMessage] = useState('')
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setToday(getLagosDateString()), 60_000)
+    return () => window.clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    setDeliveryDate((current) => current && current >= today ? current : '')
+  }, [today])
+
+  const isTodayAvailable = isOrderServiceDate(today)
+  const availableDates = useMemo(() => getUpcomingOrderDates(today), [today])
+  const scheduledDeliveryDate = isTodayAvailable ? today : deliveryDate
 
   useEffect(() => {
     const url = new URL(window.location.href)
@@ -123,6 +141,10 @@ export default function OrderPage() {
       newErrors.cart = 'Your cart is empty'
     }
 
+    if (!isTodayAvailable && !availableDates.includes(deliveryDate)) {
+      newErrors.deliveryDate = 'Choose one of the available Thursday, Friday, or Saturday dates.'
+    }
+
     setErrors(newErrors)
 
     return Object.keys(newErrors).length === 0
@@ -180,6 +202,7 @@ export default function OrderPage() {
           phone: phone.trim(),
           notes: notes.trim(),
           allergies: allergies.trim(),
+          deliveryDate: scheduledDeliveryDate,
         }),
       })
 
@@ -194,6 +217,7 @@ export default function OrderPage() {
 
       const savedOrder = orderData.order
       setOrderId(savedOrder.id)
+      setConfirmedDeliveryDate(savedOrder.deliveryDate)
 
       const whatsappNumber = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, '')
       const orderItems = (savedOrder.items as {
@@ -220,6 +244,7 @@ export default function OrderPage() {
         `Name: ${session.user.name || 'Not provided'}`,
         `Phone: ${phone.trim()}`,
         `Address: ${deliveryAddress.trim()}`,
+        `Scheduled delivery: ${formatOrderDate(savedOrder.deliveryDate)}`,
         `Notes: ${notes.trim() || 'None'}`,
         `Allergies or food sensitivities: ${allergies.trim() || 'None provided'}`,
         '',
@@ -258,6 +283,7 @@ export default function OrderPage() {
     return (
       <OrderSuccess
         orderId={orderId}
+        deliveryDate={confirmedDeliveryDate}
         whatsappUrl={whatsappUrl}
         onMessageSent={() => {
           dispatch(clearCart())
@@ -265,8 +291,10 @@ export default function OrderPage() {
           setPhone('')
           setNotes('')
           setAllergies('')
+          setDeliveryDate('')
           setSubmitted(false)
           setOrderId(undefined)
+          setConfirmedDeliveryDate('')
           setWhatsappUrl('')
           router.push('/explore')
         }}
@@ -336,11 +364,19 @@ export default function OrderPage() {
               phone={phone}
               notes={notes}
               allergies={allergies}
+              isTodayAvailable={isTodayAvailable}
+              today={today}
+              deliveryDate={deliveryDate}
+              availableDates={availableDates}
               errors={errors}
               onAddressChange={setDeliveryAddress}
               onPhoneChange={setPhone}
               onNotesChange={setNotes}
               onAllergiesChange={setAllergies}
+              onDeliveryDateChange={(value) => {
+                setDeliveryDate(value)
+                setErrors((current) => ({ ...current, deliveryDate: undefined }))
+              }}
             />
           </div>
 

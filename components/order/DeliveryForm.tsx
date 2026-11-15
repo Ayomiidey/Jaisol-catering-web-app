@@ -1,21 +1,28 @@
 'use client'
 
-import { MapPin, Phone, MessageSquare } from 'lucide-react'
+import { CalendarDays, MapPin, Phone, MessageSquare } from 'lucide-react'
+import { formatOrderDate } from '@/lib/order-schedule'
 
 interface DeliveryFormProps {
   deliveryAddress: string
   phone: string
   notes: string
   allergies: string
+  isTodayAvailable: boolean
+  today: string
+  deliveryDate: string
+  availableDates: string[]
   errors: {
     address?: string
     phone?: string
     cart?: string
+    deliveryDate?: string
   }
   onAddressChange: (value: string) => void
   onPhoneChange: (value: string) => void
   onNotesChange: (value: string) => void
   onAllergiesChange: (value: string) => void
+  onDeliveryDateChange: (value: string) => void
 }
 
 export function DeliveryForm({
@@ -23,11 +30,16 @@ export function DeliveryForm({
   phone,
   notes,
   allergies,
+  isTodayAvailable,
+  today,
+  deliveryDate,
+  availableDates,
   errors,
   onAddressChange,
   onPhoneChange,
   onNotesChange,
   onAllergiesChange,
+  onDeliveryDateChange,
 }: DeliveryFormProps) {
   return (
     <section className="mt-8 rounded-2xl border bg-card p-5 sm:p-6">
@@ -42,6 +54,48 @@ export function DeliveryForm({
       </div>
 
       <div className="space-y-5">
+        <div className={`rounded-xl border p-4 ${isTodayAvailable ? 'border-primary/20 bg-primary/5' : 'border-amber-500/30 bg-amber-500/5'}`}>
+          <div className="flex items-start gap-3">
+            <CalendarDays className={`mt-0.5 h-5 w-5 shrink-0 ${isTodayAvailable ? 'text-primary' : 'text-amber-700 dark:text-amber-400'}`} />
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">
+                {isTodayAvailable ? 'Orders are being prepared today' : 'Choose a preparation and delivery date'}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {isTodayAvailable
+                  ? `Today is ${formatOrderDate(today)}. Your order will be scheduled for today.`
+                  : 'Our chef prepares orders Thursday to Saturday. Today is not an available preparation day, so your order will be scheduled for the date you choose below.'}
+              </p>
+            </div>
+          </div>
+          {!isTodayAvailable && (
+            <div className="mt-4">
+              <label htmlFor="order-delivery-date" className="mb-2 block text-sm font-medium">
+                Available delivery dates <span className="text-destructive">*</span>
+              </label>
+              <select
+                id="order-delivery-date"
+                value={deliveryDate}
+                onChange={(event) => onDeliveryDateChange(event.target.value)}
+                required
+                aria-invalid={Boolean(errors.deliveryDate)}
+                className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">Choose a Thursday, Friday, or Saturday</option>
+                {availableDates.map((date) => (
+                  <option key={date} value={date}>{formatOrderDate(date)}</option>
+                ))}
+              </select>
+              {errors.deliveryDate && (
+                <p className="mt-1 text-sm text-destructive">{errors.deliveryDate}</p>
+              )}
+              <p className="mt-2 text-xs text-muted-foreground">
+                Your order will be prepared and delivered on the date selected. It will not be scheduled for today.
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Address */}
         <div>
           <label

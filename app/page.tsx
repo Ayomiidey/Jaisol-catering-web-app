@@ -18,6 +18,7 @@ import { StoryBlock } from '@/components/home/StoryBlock'
 import { WhyJaisolSection } from '@/components/home/WhyJaisolSection'
 import { FinalCTA } from '@/components/home/FinalCTA'
 import { Footer } from '@/components/shared/Footer'
+import { OrderAvailabilityNotice } from '@/components/order/OrderAvailabilityNotice'
 
 export default function Home() {
   const { data: session } = useSession()
@@ -51,6 +52,9 @@ export default function Home() {
       <HomeHeader greeting={greeting} cartCount={cartCount} />
       <section className="px-4 py-4">
         <HeroCarousel />
+      </section>
+      <section className="mx-auto max-w-7xl px-4 pb-5 md:px-6">
+        <OrderAvailabilityNotice />
       </section>
       {/* <QuickActions /> */}
       <ServicesSection/>

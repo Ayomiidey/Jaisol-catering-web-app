@@ -16,6 +16,7 @@ import {
 
 import { getMenuItems } from '@/app/actions/menu'
 import { RootState } from '@/lib/store'
+import { OrderAvailabilityNotice } from '@/components/order/OrderAvailabilityNotice'
 
 import {
   setCategory,
@@ -281,6 +282,9 @@ export function Explore() {
 
       </header>
 
+      <section className="mx-auto max-w-7xl px-4 pt-4 md:px-6">
+        <OrderAvailabilityNotice />
+      </section>
 
       {/* ================= CATEGORY FILTER ================= */}
 
