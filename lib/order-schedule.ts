@@ -1,8 +1,8 @@
 export const ORDER_SERVICE_DAYS = [4, 5, 6] as const // Thursday, Friday, Saturday
 
-export function getLagosDateString(now = new Date()): string {
+export function getUKDateString(now = new Date()): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Africa/Lagos',
+    timeZone: 'Europe/London',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

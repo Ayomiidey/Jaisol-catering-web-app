@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { formatOrderDate } from '@/lib/order-schedule'
 
-const ORDER_STATUSES = ['awaiting_whatsapp_confirmation', 'pending', 'confirmed', 'making', 'ready', 'delivered', 'cancelled']
+const ORDER_STATUSES = ['awaiting_whatsapp_confirmation', 'pending', 'confirmed', 'making', 'ready', 'out_for_delivery', 'delivered', 'cancelled']
 
 const statusColors: Record<string, string> = {
   awaiting_whatsapp_confirmation: 'bg-yellow-500/20 text-yellow-400',
@@ -15,14 +15,16 @@ const statusColors: Record<string, string> = {
   confirmed: 'bg-blue-500/20 text-blue-400',
   making: 'bg-primary/20 text-primary',
   ready: 'bg-purple-500/20 text-purple-400',
+  out_for_delivery: 'bg-cyan-500/20 text-cyan-400',
   delivered: 'bg-green-500/20 text-green-400',
   cancelled: 'bg-red-500/20 text-red-400',
 }
 
-const statusLabel = (status: string) =>
-  status === 'awaiting_whatsapp_confirmation'
-    ? 'Awaiting WhatsApp'
-    : status.charAt(0).toUpperCase() + status.slice(1)
+const statusLabel = (status: string) => {
+  if (status === 'awaiting_whatsapp_confirmation') return 'Awaiting WhatsApp'
+  if (status === 'out_for_delivery') return 'Out for delivery'
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
 
 interface OrderItem {
   id: string
@@ -153,7 +155,7 @@ function OrdersContent() {
                   <div>
                     <p className="font-semibold text-primary">£{order.totalPrice.toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground">
-                      Placed {new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                      Placed {new Date(order.createdAt).toLocaleDateString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'short' })}
                     </p>
                     {order.deliveryDate && <p className="mt-1 text-xs font-semibold text-primary">Delivery {formatOrderDate(order.deliveryDate, { weekday: 'short', day: 'numeric', month: 'short' })}</p>}
                   </div>

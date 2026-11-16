@@ -20,7 +20,7 @@ import { CartItems } from '@/components/order/CartItems'
 import { DeliveryForm } from '@/components/order/DeliveryForm'
 import { OrderSummary } from '@/components/order/OrderSummary'
 import { OrderSuccess } from '@/components/order/OrderSuccess'
-import { formatOrderDate, getLagosDateString, getUpcomingOrderDates, isOrderServiceDate } from '@/lib/order-schedule'
+import { formatOrderDate, getUKDateString, getUpcomingOrderDates, isOrderServiceDate } from '@/lib/order-schedule'
 
 const DELIVERY_FEE = 2.5
 
@@ -43,7 +43,7 @@ export default function OrderPage() {
   )
 
   const [phone, setPhone] = useState(cart.phone || '')
-  const [today, setToday] = useState(() => getLagosDateString())
+  const [today, setToday] = useState(() => getUKDateString())
   const [deliveryDate, setDeliveryDate] = useState('')
 
   const [notes, setNotes] = useState(
@@ -60,7 +60,7 @@ export default function OrderPage() {
   const [reorderMessage, setReorderMessage] = useState('')
 
   useEffect(() => {
-    const interval = window.setInterval(() => setToday(getLagosDateString()), 60_000)
+    const interval = window.setInterval(() => setToday(getUKDateString()), 60_000)
     return () => window.clearInterval(interval)
   }, [])
 

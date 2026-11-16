@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { CalendarClock } from 'lucide-react'
-import { formatOrderDate, getLagosDateString, isOrderServiceDate } from '@/lib/order-schedule'
+import { formatOrderDate, getUKDateString, isOrderServiceDate } from '@/lib/order-schedule'
 
 export function OrderAvailabilityNotice() {
-  const [today, setToday] = useState(() => getLagosDateString())
+  const [today, setToday] = useState(() => getUKDateString())
 
   useEffect(() => {
-    const interval = window.setInterval(() => setToday(getLagosDateString()), 60_000)
+    const interval = window.setInterval(() => setToday(getUKDateString()), 60_000)
     return () => window.clearInterval(interval)
   }, [])
 

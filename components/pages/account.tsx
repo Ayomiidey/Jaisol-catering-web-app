@@ -44,6 +44,9 @@ function getStatusClasses(status: string) {
     case "processing":
       return "bg-blue-500/10 text-blue-500"
 
+    case "out_for_delivery":
+      return "bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
+
     case "pending":
       return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
 

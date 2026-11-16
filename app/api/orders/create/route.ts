@@ -1,7 +1,7 @@
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
-import { getLagosDateString, isOrderServiceDate } from '@/lib/order-schedule'
+import { getUKDateString, isOrderServiceDate } from '@/lib/order-schedule'
 
 const DELIVERY_FEE = 2.5
 
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const { items, deliveryAddress, phone, notes, allergies, deliveryDate: requestedDeliveryDate } = await req.json()
 
-    const today = getLagosDateString()
+    const today = getUKDateString()
     let deliveryDate = today
     if (!isOrderServiceDate(today)) {
       if (

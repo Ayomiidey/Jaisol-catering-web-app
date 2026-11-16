@@ -14,6 +14,7 @@ function getStatusClasses(status: string) {
   switch (status.toLowerCase()) {
     case 'delivered': case 'confirmed': case 'completed': case 'ready': return 'bg-primary/15 text-foreground'
     case 'making': case 'processing': return 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+    case 'out_for_delivery': return 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300'
     case 'pending': case 'awaiting_whatsapp_confirmation': return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
     case 'cancelled': return 'bg-destructive/10 text-destructive'
     default: return 'bg-muted text-muted-foreground'
@@ -25,7 +26,11 @@ export function OrderCard({ order }: OrderCardProps) {
   const router = useRouter()
   const [message, setMessage] = useState('')
   const availableCount = order.items.filter((item) => item.menuItem.isAvailable).length
-  const displayStatus = order.status === 'awaiting_whatsapp_confirmation' ? 'Awaiting WhatsApp confirmation' : order.status.replaceAll('_', ' ')
+  const displayStatus = order.status === 'awaiting_whatsapp_confirmation'
+    ? 'Awaiting WhatsApp confirmation'
+    : order.status === 'out_for_delivery'
+      ? 'Out for delivery'
+      : order.status.replaceAll('_', ' ')
 
   const reorder = () => {
     const availableItems = order.items.filter((item) => item.menuItem.isAvailable)
@@ -55,7 +60,7 @@ export function OrderCard({ order }: OrderCardProps) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="rounded-xl bg-primary/10 p-3 text-primary"><ShoppingBag className="h-5 w-5" /></div>
-          <div><p className="font-semibold">Order #{order.id.slice(-8).toUpperCase()}</p><p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground"><CalendarDays className="h-3.5 w-3.5" />Placed {new Date(order.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>{order.deliveryDate && <p className="mt-1 text-sm font-medium text-primary">Delivery: {formatOrderDate(order.deliveryDate)}</p>}</div>
+          <div><p className="font-semibold">Order #{order.id.slice(-8).toUpperCase()}</p><p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground"><CalendarDays className="h-3.5 w-3.5" />Placed {new Date(order.date).toLocaleDateString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'short', year: 'numeric' })}</p>{order.deliveryDate && <p className="mt-1 text-sm font-medium text-primary">Delivery: {formatOrderDate(order.deliveryDate)}</p>}</div>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClasses(order.status)}`}>{displayStatus}</span>
       </div>

@@ -23,5 +23,7 @@ export function useUserOrders(userId?: string) {
 
     enabled: Boolean(userId),
     retry: 2,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   })
 }
